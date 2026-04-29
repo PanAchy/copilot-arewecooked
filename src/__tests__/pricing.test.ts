@@ -40,6 +40,109 @@ describe("normalizeModel", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Model aliases
+// ---------------------------------------------------------------------------
+
+describe("model aliases", () => {
+  it("prices GPT-5.1 as GPT-5.2", () => {
+    const record: UsageRecord = {
+      source: "opencode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "gpt-5.1",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("gpt-5.2");
+    expect(result.pricingKnown).toBe(true);
+    // GPT-5.2 input: $1.75/M
+    expect(result.usd).toBeCloseTo(1.75, 6);
+  });
+
+  it("prices GPT-5.1-Codex as GPT-5.2-Codex", () => {
+    const record: UsageRecord = {
+      source: "opencode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "gpt-5.1-codex",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("gpt-5.2-codex");
+    expect(result.pricingKnown).toBe(true);
+  });
+
+  it("prices GPT-4o as GPT-4.1", () => {
+    const record: UsageRecord = {
+      source: "vscode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "gpt-4o",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("gpt-4.1");
+    expect(result.pricingKnown).toBe(true);
+  });
+
+  it("prices GPT-4o-mini as GPT-5-mini", () => {
+    const record: UsageRecord = {
+      source: "vscode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "gpt-4o-mini",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("gpt-5-mini");
+    expect(result.pricingKnown).toBe(true);
+  });
+
+  it("prices Gemini 3 Pro as Gemini 3.1 Pro", () => {
+    const record: UsageRecord = {
+      source: "opencode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "gemini-3-pro",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("gemini-3.1-pro");
+    expect(result.pricingKnown).toBe(true);
+  });
+
+  it("still returns unknown for truly unknown models", () => {
+    const record: UsageRecord = {
+      source: "opencode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "totally-unknown-model",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingKnown).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // costRecord
 // ---------------------------------------------------------------------------
 

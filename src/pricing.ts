@@ -67,6 +67,18 @@ export const MODEL_PRICES: Record<string, PriceRate> = {
   goldeneye: { input: 1.75, cachedInput: 0.175, output: 14.0 },
 };
 
+// Map older/unlisted models to the closest priced equivalent.
+export const MODEL_ALIASES: Record<string, string> = {
+  "gpt-5.1": "gpt-5.2",
+  "gpt-5.1-codex": "gpt-5.2-codex",
+  "gpt-5.1-codex-mini": "gpt-5.4-mini",
+  "gpt-5.1-codex-max": "gpt-5.2-codex",
+  "gpt-4o": "gpt-4.1",
+  "gpt-4o-mini": "gpt-5-mini",
+  "gemini-3-pro": "gemini-3.1-pro",
+  goldeneye: "gpt-5.2-codex",
+};
+
 export const PLANS: Record<string, number> = {
   pro: 1000,
   "pro+": 3900,
@@ -85,11 +97,25 @@ export function normalizeModel(model: string): string {
     .trim();
 }
 
+function resolveModel(model: string): string {
+  const normalized = normalizeModel(model);
+  if (MODEL_PRICES[normalized]) return normalized;
+  const alias = MODEL_ALIASES[normalized];
+  if (alias) return alias;
+  return normalized;
+}
+
 export function costRecord(record: UsageRecord): CostedUsageRecord {
-  const pricingModel = normalizeModel(record.model);
-  const rate = MODEL_PRICES[pricingModel];
+  const resolved = resolveModel(record.model);
+  const rate = MODEL_PRICES[resolved];
   if (!rate) {
-    return { ...record, usd: 0, credits: 0, pricingModel, pricingKnown: false };
+    return {
+      ...record,
+      usd: 0,
+      credits: 0,
+      pricingModel: resolved,
+      pricingKnown: false,
+    };
   }
 
   const usd =
@@ -103,7 +129,7 @@ export function costRecord(record: UsageRecord): CostedUsageRecord {
     ...record,
     usd,
     credits: usd * 100,
-    pricingModel,
+    pricingModel: resolved,
     pricingKnown: true,
   };
 }
