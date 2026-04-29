@@ -1,12 +1,16 @@
 import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
-import { vscodeStoragePaths } from "./paths.js";
-import type { SourceFinding, UsageRecord } from "./types.js";
+import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
+import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
-import { roughTokens } from "./utils.js";
+import { roughTokens, DISPLAY_NAMES } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
+}
+
+export function defaultVsCodeInsidersWorkspaceStoragePaths(): string[] {
+  return vscodeInsidersStoragePaths();
 }
 
 function modelFromRequest(request: any): string {
@@ -20,8 +24,10 @@ function modelFromRequest(request: any): string {
   if (resolved.includes("grok")) return "grok-code-fast-1";
 
   const modelId = String(request.modelId ?? "").replace(/^copilot\//, "");
-  return modelId === "auto" ? "grok-code-fast-1" : modelId;
+  return modelId;
 }
+
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 function setPath(
   target: any,
@@ -31,16 +37,19 @@ function setPath(
   let cursor = target;
   for (let index = 0; index < path.length - 1; index++) {
     const key = path[index];
+    if (typeof key === "string" && UNSAFE_KEYS.has(key)) return;
     const nextKey = path[index + 1];
     if (cursor[key] == null)
       cursor[key] = typeof nextKey === "number" ? [] : {};
     cursor = cursor[key];
   }
-  cursor[path[path.length - 1]] = value;
+  const lastKey = path[path.length - 1];
+  if (typeof lastKey === "string" && UNSAFE_KEYS.has(lastKey)) return;
+  cursor[lastKey] = value;
 }
 
 function reconstructSession(file: string): any {
-  const state: any = {};
+  const state: any = Object.create(null);
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
     if (!line.trim()) continue;
     let event: any;
@@ -56,12 +65,91 @@ function reconstructSession(file: string): any {
   return state;
 }
 
+function collectSessionRequests(file: string): {
+  session: any;
+  requests: any[];
+} {
+  const state: any = Object.create(null);
+  const requestsById = new Map<string, any>();
+
+  const captureRequest = (request: any) => {
+    if (!request || typeof request !== "object") return;
+    const requestId = request.requestId;
+    if (typeof requestId !== "string" || !requestId) return;
+    const existing = requestsById.get(requestId);
+    if (existing) {
+      // Preserve the highest completionTokens seen — kind:2 replacement events
+      // often drop or reset completionTokens that were accumulated via patches.
+      const prevTokens = existing.completionTokens ?? 0;
+      const newTokens = request.completionTokens ?? 0;
+      requestsById.set(requestId, {
+        ...existing,
+        ...request,
+        completionTokens: Math.max(prevTokens, newTokens),
+      });
+    } else {
+      requestsById.set(requestId, request);
+    }
+  };
+
+  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    let event: any;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      continue;
+    }
+
+    if (event.kind === 0) {
+      Object.assign(state, event.v ?? {});
+      for (const request of state.requests ?? []) captureRequest(request);
+      continue;
+    }
+
+    if ((event.kind === 1 || event.kind === 2) && Array.isArray(event.k)) {
+      setPath(state, event.k, event.v);
+      if (event.k[0] !== "requests") continue;
+
+      if (event.k.length === 1) {
+        for (const request of state.requests ?? []) captureRequest(request);
+        continue;
+      }
+
+      const requestIndex = event.k[1];
+      if (typeof requestIndex === "number") {
+        captureRequest(state.requests?.[requestIndex]);
+      }
+    }
+  }
+
+  return {
+    session: state,
+    requests: [...requestsById.values()],
+  };
+}
+
 export function parseVsCode(
   basePath = defaultVsCodeWorkspaceStoragePaths()[0],
   sinceMs?: number
 ): SourceParseResult {
+  return parseVsCodeVariant("vscode", basePath, sinceMs);
+}
+
+export function parseVsCodeInsiders(
+  basePath = defaultVsCodeInsidersWorkspaceStoragePaths()[0],
+  sinceMs?: number
+): SourceParseResult {
+  return parseVsCodeVariant("vscode-insiders", basePath, sinceMs);
+}
+
+function parseVsCodeVariant(
+  sourceKind: SourceKind,
+  basePath: string,
+  sinceMs?: number
+): SourceParseResult {
   const finding: SourceFinding = {
-    source: "vscode",
+    source: sourceKind,
     path: basePath,
     found: existsSync(basePath),
     records: 0,
@@ -77,8 +165,11 @@ export function parseVsCode(
   });
   for (const file of files) {
     let session: any;
+    let sessionRequests: any[];
     try {
-      session = reconstructSession(file);
+      const parsed = collectSessionRequests(file);
+      session = parsed.session;
+      sessionRequests = parsed.requests;
     } catch (err) {
       finding.notes.push(
         `Skipping malformed session file: ${err instanceof Error ? err.message : String(err)}`
@@ -92,9 +183,15 @@ export function parseVsCode(
         .at(-1)
         ?.replace(/\.jsonl$/, "");
 
-    for (const request of session.requests ?? []) {
+    for (const request of sessionRequests) {
       if (!request) continue;
-      if (sinceMs && request.timestamp && request.timestamp < sinceMs) continue;
+      if (sinceMs && request.timestamp) {
+        const ts =
+          typeof request.timestamp === "string"
+            ? Date.parse(request.timestamp)
+            : Number(request.timestamp);
+        if (Number.isFinite(ts) && ts < sinceMs) continue;
+      }
       const metadata = request.result?.metadata ?? {};
       const inputEstimate =
         roughTokens(metadata.renderedUserMessage) +
@@ -102,7 +199,7 @@ export function parseVsCode(
       const command = request.command ?? request.slashCommand?.command;
 
       records.push({
-        source: "vscode",
+        source: sourceKind,
         sourcePath: file,
         sessionId,
         messageId: request.requestId,
@@ -123,11 +220,26 @@ export function parseVsCode(
   }
 
   finding.records = records.length;
-  if (records.length === 0)
+  if (records.length === 0) {
     finding.notes.push("No VS Code Copilot chat request records found.");
-  else
+  } else {
+    const zeroOutput = records.filter((r) => r.outputTokens === 0).length;
+    const zeroOutputPct = Math.round((100 * zeroOutput) / records.length);
     finding.notes.push(
-      "VS Code session JSONL is patch-reduced before reading. Input/cache tokens are not persisted; output completionTokens are persisted when available."
+      "VS Code session JSONL is an incremental patch stream. " +
+        "Requests are harvested across the event history and deduped by requestId; " +
+        "input/cache tokens are not persisted and output completionTokens are only available when VS Code records them."
     );
+    if (zeroOutputPct >= 50) {
+      const displayName = DISPLAY_NAMES[sourceKind] ?? sourceKind;
+      finding.notes.push(
+        `⚠️ ${displayName}: ${zeroOutputPct}% of records (${zeroOutput}/${records.length}) have zero output tokens. ` +
+          "Copilot Chat extension versions 0.38–0.43 (approx. Feb 7 – Apr 14, 2026) " +
+          "have a known regression where completionTokens are not persisted to session files. " +
+          "Credit totals from this period are significantly underestimated. " +
+          "Use --since 2026-04-15 or --days to limit the report to a period with accurate data."
+      );
+    }
+  }
   return { finding, records };
 }

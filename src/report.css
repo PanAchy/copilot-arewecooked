@@ -56,6 +56,12 @@
   .section-title {
     @apply m-0 text-[17px] font-semibold tracking-[-0.01em];
   }
+  .plan-subtitle {
+    @apply mt-1 text-[13px] text-report-muted tabular-nums;
+  }
+  .plan-subtitle strong {
+    @apply text-report-text font-semibold;
+  }
   .head-meta {
     @apply text-[13px] text-report-muted tabular-nums;
   }
@@ -84,7 +90,7 @@
     @apply grid gap-3;
   }
   .plan-row {
-    @apply grid items-center gap-4 [grid-template-columns:minmax(5.5rem,0.7fr)_minmax(7rem,1fr)_minmax(6.5rem,0.75fr)];
+    @apply grid items-center gap-2 [grid-template-columns:0.55fr_1fr_0.3fr];
   }
   .plan-name {
     @apply font-semibold;
@@ -120,37 +126,49 @@
     @apply text-report-red;
   }
   .card-note {
-    @apply mt-auto border-t border-report-border pt-3 text-xs text-report-muted;
+    @apply mt-auto border-t border-report-border pt-3 text-[13px] text-report-text;
+  }
+  .warning-banner {
+    @apply mb-[18px] flex gap-3 rounded-[14px] border border-[#78600a] bg-[#1a1508] px-4 py-3 text-sm;
+  }
+  .warn-icon {
+    @apply flex-none leading-[1.45] text-report-yellow;
+  }
+  .warn-content {
+    @apply flex flex-col gap-1;
+  }
+  .warn-title {
+    @apply font-semibold text-report-yellow;
+  }
+  .warn-item {
+    @apply m-0 text-report-muted;
   }
   .source-card {
     @apply flex flex-col;
   }
   .source-bars {
-    @apply grid flex-1 content-center gap-4 pb-5;
+    @apply grid flex-1 content-evenly;
   }
   .source-row {
-    @apply grid gap-2;
-  }
-  .source-line {
-    @apply grid items-baseline gap-3 text-[13px] leading-[1.35] [grid-template-columns:minmax(0,1fr)_auto];
+    @apply grid items-center gap-3 [grid-template-columns:0.65fr_1fr_auto];
   }
   .source-name {
-    @apply flex items-center gap-2 font-medium text-report-text;
-  }
-  .source-value {
-    @apply text-right tabular-nums;
-  }
-  .source-value strong {
-    @apply block font-medium text-report-text;
-  }
-  .source-value span {
-    @apply block text-xs text-report-muted;
+    @apply text-[13px] font-medium text-report-text;
   }
   .source-track {
-    @apply h-2 overflow-hidden rounded-full bg-[#18181b];
+    @apply h-[7px] overflow-hidden rounded-full bg-[#18181b];
   }
   .source-fill {
     @apply h-full rounded-full;
+  }
+  .source-val {
+    @apply text-right;
+  }
+  .source-val strong {
+    @apply block text-[13px] font-semibold tabular-nums text-report-text;
+  }
+  .source-val span {
+    @apply block text-[11px] tabular-nums text-report-muted;
   }
   .sw {
     @apply h-2.5 w-2.5 rounded-sm;

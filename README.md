@@ -42,13 +42,14 @@ git clone https://github.com/PanAchy/copilot-arewecooked.git
 cd copilot-arewecooked
 npm install
 npm run build
-npm start
+npm run generate
 ```
 
-By default, this writes an HTML report like:
+By default, this writes an HTML report and PNG screenshot like:
 
 ```text
-copilot-report-YYYY-MM-DD.html
+copilot-report-YYYY-MM-DD-abc123.html
+copilot-report-YYYY-MM-DD-abc123.png
 ```
 
 ### Options
@@ -60,16 +61,16 @@ copilot-report-YYYY-MM-DD.html
 | `--html`     | Write HTML report to a specific path            |
 
 ```bash
-npm start -- --days 30
-npm start -- --html report.html
-npm start -- --json
+npm run generate -- --days 30
+npm run generate -- --html report.html
+npm run generate -- --json
 ```
 
 ## How data is extracted
 
-| Source          | Paths                                                                                                                                                                                                                                       | Token accuracy                                     |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| **VS Code**     | `~/Library/Application Support/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (macOS) · `%APPDATA%/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (Windows) · `~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (Linux) | Input estimated, output exact, cache not persisted |
-| **OpenCode**    | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                | All exact (input, output, cache read/write)        |
-| **Pi**          | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                           | All exact (input, output, cache read/write)        |
-| **Copilot CLI** | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                   | Output exact, input estimated, compaction exact    |
+| Source          | Paths                                                                                                                                                                                                                                                                                 | Token accuracy                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **VS Code**     | `~/Library/Application Support/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (macOS) · `%APPDATA%/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Windows) · `~/.config/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Linux) | Input estimated, output exact, cache not persisted |
+| **OpenCode**    | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                                                          | All exact (input, output, cache read/write)        |
+| **Pi**          | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                                                                     | All exact (input, output, cache read/write)        |
+| **Copilot CLI** | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                                                             | Output exact, input estimated, compaction exact    |

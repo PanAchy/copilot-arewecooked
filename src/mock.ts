@@ -15,12 +15,9 @@ const MODELS = [
   "gemini-3-flash",
 ];
 
-const SOURCES: Array<"opencode" | "pi" | "copilot-cli" | "vscode"> = [
-  "opencode",
-  "pi",
-  "copilot-cli",
-  "vscode",
-];
+const SOURCES: Array<
+  "opencode" | "pi" | "copilot-cli" | "vscode" | "vscode-insiders"
+> = ["opencode", "pi", "copilot-cli", "vscode", "vscode-insiders"];
 
 let seed = 42;
 
@@ -119,6 +116,13 @@ const summary = buildSummary({
       path: "/mock/vscode",
       found: true,
       records: records.filter((r) => r.source === "vscode").length,
+      notes: [],
+    },
+    {
+      source: "vscode-insiders",
+      path: "/mock/vscode-insiders",
+      found: true,
+      records: records.filter((r) => r.source === "vscode-insiders").length,
       notes: [],
     },
   ],

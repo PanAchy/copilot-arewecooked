@@ -1,10 +1,20 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { randomBytes } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import puppeteer from "puppeteer";
 import { buildSummary, costRecords } from "./report.js";
 import { sourceAdapters } from "./sources.js";
 import { renderHtml } from "./html.js";
+
+const DEBUG = !!process.env.DEBUG;
+function dbg(label: string, start: number) {
+  if (DEBUG)
+    console.error(`[timing] ${label}: ${(Date.now() - start).toFixed(0)}ms`);
+}
 
 const pkg = createRequire(import.meta.url)("../package.json");
 
@@ -17,15 +27,20 @@ program
   )
   .version(pkg.version)
   .option("--days <days>", "days to look back")
+  .option(
+    "--since <date>",
+    "only include records from this date onward (YYYY-MM-DD)"
+  )
   .option("--json", "print detailed normalized JSON instead of HTML")
   .option(
     "--html [path]",
-    "write HTML report path (default: copilot-report-YYYY-MM-DD.html)"
+    "write HTML report path (default: copilot-report-YYYY-MM-DD-<hex>.html)"
   )
   .parse(process.argv);
 
 const options = program.opts<{
   days?: string;
+  since?: string;
   json?: boolean;
   html?: boolean | string;
 }>();
@@ -33,7 +48,21 @@ const options = program.opts<{
 let periodDays: number | undefined;
 let sinceMs: number | undefined;
 
-if (options.days) {
+if (options.since && options.days) {
+  console.error(
+    "--since and --days are mutually exclusive; use one or the other"
+  );
+  process.exit(1);
+}
+
+if (options.since) {
+  const parsed = Date.parse(options.since);
+  if (!Number.isFinite(parsed)) {
+    console.error("--since must be a valid date (YYYY-MM-DD)");
+    process.exit(1);
+  }
+  sinceMs = parsed;
+} else if (options.days) {
   periodDays = Number.parseInt(options.days, 10);
   if (!Number.isFinite(periodDays) || periodDays <= 0) {
     console.error("--days must be a positive integer");
@@ -42,6 +71,7 @@ if (options.days) {
   sinceMs = Date.now() - periodDays * 24 * 60 * 60 * 1000;
 }
 
+const t0 = Date.now();
 const findings = [];
 const records = [];
 const toolFindings = [];
@@ -51,28 +81,58 @@ for (const adapter of Object.values(sourceAdapters)) {
   const existing = paths.filter((p) => existsSync(p));
   const toCheck = existing.length > 0 ? existing : [paths[0]];
   for (const path of toCheck) {
+    const tAdapter = Date.now();
     const result = adapter.parse(path, sinceMs);
+    dbg(
+      `parse ${result.finding.source} (${result.records.length} records)`,
+      tAdapter
+    );
     findings.push(result.finding);
     records.push(...result.records);
     toolFindings.push(...(result.toolFindings ?? []));
   }
 }
+dbg("all sources parsed", t0);
 
+const tCost = Date.now();
+const costed = costRecords(records);
+dbg("costRecords", tCost);
+
+const tSummary = Date.now();
 const summary = buildSummary({
   periodDays,
   findings,
-  records: costRecords(records),
+  records: costed,
   toolFindings,
 });
+dbg("buildSummary", tSummary);
 
 if (options.json) {
   console.log(JSON.stringify(summary, null, 2));
 } else {
   const today = new Date().toISOString().slice(0, 10);
+  const hexId = randomBytes(3).toString("hex");
   const htmlPath =
     typeof options.html === "string" && options.html
       ? options.html
-      : `copilot-report-${today}.html`;
+      : `copilot-report-${today}-${hexId}.html`;
+
+  const tHtml = Date.now();
   writeFileSync(htmlPath, renderHtml(summary));
+  dbg("renderHtml + write", tHtml);
+  dbg("total", t0);
   console.log(`HTML report written to ${htmlPath}`);
+
+  const pngPath = htmlPath.replace(/\.html$/, "") + ".png";
+  const tPng = Date.now();
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
+  await page.goto(pathToFileURL(resolve(htmlPath)).href, {
+    waitUntil: "networkidle0",
+  });
+  await page.screenshot({ path: pngPath, fullPage: true });
+  await browser.close();
+  dbg("png screenshot", tPng);
+  console.log(`PNG screenshot written to ${pngPath}`);
 }

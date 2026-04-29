@@ -43,3 +43,18 @@ export function vscodeStoragePaths(): string[] {
     join(home, ".config/Code/User/workspaceStorage"),
   ]);
 }
+
+export function vscodeInsidersStoragePaths(): string[] {
+  return compact([
+    isMac
+      ? join(
+          home,
+          "Library/Application Support/Code - Insiders/User/workspaceStorage"
+        )
+      : undefined,
+    isWindows && process.env.APPDATA
+      ? join(process.env.APPDATA, "Code - Insiders/User/workspaceStorage")
+      : undefined,
+    join(home, ".config/Code - Insiders/User/workspaceStorage"),
+  ]);
+}

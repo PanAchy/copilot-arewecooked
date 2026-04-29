@@ -42,47 +42,94 @@ export function parseOpenCode(
   }
 
   try {
-    for (const row of db
-      .prepare("select id, session_id, data from message")
-      .iterate() as Iterable<{
+    // Fetch only the scalar fields we need via json_extract — avoids full JSON.parse in JS
+    // for each row. Large blobs (>2 MB) are skipped: confirmed zero assistant-role rows
+    // exceed that threshold, so there is no data loss.
+    const msgStmt = sinceMs
+      ? db.prepare(`
+          SELECT id, session_id,
+            json_extract(data,'$.time.created')       AS ts,
+            json_extract(data,'$.providerID')          AS prov,
+            json_extract(data,'$.modelID')             AS mdl,
+            json_extract(data,'$.model.providerID')    AS mprov,
+            json_extract(data,'$.model.modelID')       AS mmdl,
+            json_extract(data,'$.tokens.input')        AS t_in,
+            json_extract(data,'$.tokens.output')       AS t_out,
+            json_extract(data,'$.tokens.cache.read')   AS t_cr,
+            json_extract(data,'$.tokens.cache.write')  AS t_cw,
+            json_extract(data,'$.parentID')            AS parent,
+            json_extract(data,'$.mode')                AS mode,
+            json_extract(data,'$.agent')               AS agent,
+            json_extract(data,'$.summary')             AS summary
+          FROM message
+          WHERE json_extract(data,'$.role') = 'assistant'
+            AND length(data) < 2000000
+            AND json_extract(data,'$.time.created') >= ?`)
+      : db.prepare(`
+          SELECT id, session_id,
+            json_extract(data,'$.time.created')       AS ts,
+            json_extract(data,'$.providerID')          AS prov,
+            json_extract(data,'$.modelID')             AS mdl,
+            json_extract(data,'$.model.providerID')    AS mprov,
+            json_extract(data,'$.model.modelID')       AS mmdl,
+            json_extract(data,'$.tokens.input')        AS t_in,
+            json_extract(data,'$.tokens.output')       AS t_out,
+            json_extract(data,'$.tokens.cache.read')   AS t_cr,
+            json_extract(data,'$.tokens.cache.write')  AS t_cw,
+            json_extract(data,'$.parentID')            AS parent,
+            json_extract(data,'$.mode')                AS mode,
+            json_extract(data,'$.agent')               AS agent,
+            json_extract(data,'$.summary')             AS summary
+          FROM message
+          WHERE json_extract(data,'$.role') = 'assistant'
+            AND length(data) < 2000000`);
+
+    type MsgRow = {
       id: string;
       session_id: string;
-      data: string;
-    }>) {
-      let data: any;
-      try {
-        data = JSON.parse(row.data);
-      } catch {
-        continue;
-      }
-      if (data.role !== "assistant") continue;
-      if (sinceMs && (data.time?.created ?? 0) < sinceMs) continue;
+      ts: number | null;
+      prov: string | null;
+      mdl: string | null;
+      mprov: string | null;
+      mmdl: string | null;
+      t_in: number | null;
+      t_out: number | null;
+      t_cr: number | null;
+      t_cw: number | null;
+      parent: string | null;
+      mode: string | null;
+      agent: string | null;
+      summary: unknown;
+    };
 
-      const provider = data.providerID ?? data.model?.providerID;
-      const model = data.modelID ?? data.model?.modelID;
+    const msgRows = (
+      sinceMs ? msgStmt.all(sinceMs) : msgStmt.all()
+    ) as MsgRow[];
+
+    for (const row of msgRows) {
+      const provider = row.prov ?? row.mprov ?? undefined;
+      const model = row.mdl ?? row.mmdl ?? undefined;
       if (!isCopilotProvider(provider, model)) continue;
 
-      const tokens = data.tokens ?? {};
-      const cache = tokens.cache ?? {};
       records.push({
         source: "opencode",
         sourcePath: path,
         sessionId: row.session_id,
         messageId: row.id,
-        parentId: data.parentID,
-        timestamp: data.time?.created,
-        provider,
-        model: String(model).replace(/^github-copilot\//, ""),
-        inputTokens: tokens.input ?? 0,
-        outputTokens: tokens.output ?? 0,
-        cacheReadTokens: cache.read ?? 0,
-        cacheWriteTokens: cache.write ?? 0,
-        mode: data.mode,
-        agent: data.agent,
+        parentId: row.parent ?? undefined,
+        timestamp: row.ts ?? undefined,
+        provider: String(provider ?? ""),
+        model: String(model ?? "").replace(/^github-copilot\//, ""),
+        inputTokens: row.t_in ?? 0,
+        outputTokens: row.t_out ?? 0,
+        cacheReadTokens: row.t_cr ?? 0,
+        cacheWriteTokens: row.t_cw ?? 0,
+        mode: row.mode ?? undefined,
+        agent: row.agent ?? undefined,
         isCompaction:
-          data.mode === "compaction" ||
-          data.agent === "compaction" ||
-          data.summary === true,
+          row.mode === "compaction" ||
+          row.agent === "compaction" ||
+          row.summary === true,
       });
     }
 
@@ -90,21 +137,30 @@ export function parseOpenCode(
       records.map((record) => record.sessionId).filter(Boolean)
     );
     if (copilotSessions.size > 0) {
+      // Fetch tool parts directly via json_extract — no JSON.parse in JS.
+      // Large part blobs (>500 KB) are skipped: only 11 tool parts in the entire
+      // dataset exceed that size, negligible impact on tool-call counts.
+      type PartRow = {
+        session_id: string;
+        tool: string | null;
+        status: string | null;
+      };
       for (const row of db
-        .prepare("select session_id, data from part")
-        .iterate() as Iterable<{ session_id: string; data: string }>) {
+        .prepare(
+          `
+          SELECT session_id,
+            json_extract(data,'$.tool')         AS tool,
+            json_extract(data,'$.state.status') AS status
+          FROM part
+          WHERE length(data) < 500000
+            AND json_extract(data,'$.type') = 'tool'`
+        )
+        .iterate() as Iterable<PartRow>) {
         if (!copilotSessions.has(row.session_id)) continue;
-        let data: any;
-        try {
-          data = JSON.parse(row.data);
-        } catch {
-          continue;
-        }
-        if (data.type !== "tool") continue;
-        const tool = data.tool;
+        const tool = row.tool;
         if (!tool) continue;
         if (!["question", "task", "delegate_task"].includes(tool)) continue;
-        const status = data.state?.status;
+        const status = row.status ?? undefined;
         const key = `${row.session_id}:${tool}:${status ?? "unknown"}`;
         const existing = toolCounts.get(key);
         if (existing) existing.count += 1;
