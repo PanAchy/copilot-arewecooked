@@ -2,6 +2,7 @@ import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
 import { piSessionsPaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
+import type { SourceParseResult } from "./source.js";
 
 export function defaultPiSessionsPaths(): string[] {
   return piSessionsPaths();
@@ -10,7 +11,7 @@ export function defaultPiSessionsPaths(): string[] {
 export function parsePi(
   basePath = defaultPiSessionsPaths()[0],
   sinceMs?: number
-): { finding: SourceFinding; records: UsageRecord[] } {
+): SourceParseResult {
   const finding: SourceFinding = {
     source: "pi",
     path: basePath,

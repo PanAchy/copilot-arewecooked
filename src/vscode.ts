@@ -2,6 +2,7 @@ import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
+import type { SourceParseResult } from "./source.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
@@ -57,7 +58,7 @@ function reconstructSession(file: string): any {
 export function parseVsCode(
   basePath = defaultVsCodeWorkspaceStoragePaths()[0],
   sinceMs?: number
-): { finding: SourceFinding; records: UsageRecord[] } {
+): SourceParseResult {
   const finding: SourceFinding = {
     source: "vscode",
     path: basePath,
