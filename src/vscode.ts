@@ -27,6 +27,8 @@ function modelFromRequest(request: any): string {
   return modelId;
 }
 
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
 function setPath(
   target: any,
   path: Array<string | number>,
@@ -35,16 +37,19 @@ function setPath(
   let cursor = target;
   for (let index = 0; index < path.length - 1; index++) {
     const key = path[index];
+    if (typeof key === "string" && UNSAFE_KEYS.has(key)) return;
     const nextKey = path[index + 1];
     if (cursor[key] == null)
       cursor[key] = typeof nextKey === "number" ? [] : {};
     cursor = cursor[key];
   }
-  cursor[path[path.length - 1]] = value;
+  const lastKey = path[path.length - 1];
+  if (typeof lastKey === "string" && UNSAFE_KEYS.has(lastKey)) return;
+  cursor[lastKey] = value;
 }
 
 function reconstructSession(file: string): any {
-  const state: any = {};
+  const state: any = Object.create(null);
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
     if (!line.trim()) continue;
     let event: any;
@@ -64,7 +69,7 @@ function collectSessionRequests(file: string): {
   session: any;
   requests: any[];
 } {
-  const state: any = {};
+  const state: any = Object.create(null);
   const requestsById = new Map<string, any>();
 
   const captureRequest = (request: any) => {
@@ -167,7 +172,13 @@ function parseVsCodeVariant(
 
     for (const request of sessionRequests) {
       if (!request) continue;
-      if (sinceMs && request.timestamp && request.timestamp < sinceMs) continue;
+      if (sinceMs && request.timestamp) {
+        const ts =
+          typeof request.timestamp === "string"
+            ? Date.parse(request.timestamp)
+            : Number(request.timestamp);
+        if (Number.isFinite(ts) && ts < sinceMs) continue;
+      }
       const metadata = request.result?.metadata ?? {};
       const inputEstimate =
         roughTokens(metadata.renderedUserMessage) +
