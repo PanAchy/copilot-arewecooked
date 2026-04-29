@@ -13,6 +13,8 @@
     "typecheck": "npm run build:css && tsc --noEmit",
     "prepare": "husky",
     "check": "npm run build && node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build:css": "node scripts/build-report-css.mjs"
   },
   "keywords": [
@@ -38,6 +40,7 @@
     "prettier": "^3.8.3",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }
