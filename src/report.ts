@@ -7,8 +7,15 @@ import type {
 import { comparePlans, costRecord } from "./pricing.js";
 import { renderTable } from "./table.js";
 
+const DISPLAY_NAMES: Record<string, string> = {
+  vscode: "VS Code",
+  opencode: "OpenCode",
+  pi: "Pi",
+  "copilot-cli": "Copilot CLI",
+};
+
 export function buildSummary(args: {
-  periodDays: number;
+  periodDays?: number;
   findings: SourceFinding[];
   records: CostedUsageRecord[];
   toolFindings: ToolFinding[];
@@ -125,14 +132,18 @@ function sourceRows(summary: Summary) {
 export function renderConsole(summary: Summary): string {
   const lines: string[] = [];
   lines.push("copilot-arewecooked");
-  lines.push(`Period: last ${summary.periodDays}d`);
+  lines.push(
+    summary.periodDays
+      ? `Period: last ${summary.periodDays}d`
+      : "Period: all available data"
+  );
   lines.push("");
   lines.push("Sources");
   const sources = sourceRows(summary);
   if (sources.length > 0) {
     lines.push(
       ...renderTable(sources, [
-        { header: "Tool", value: (row) => row.tool },
+        { header: "Tool", value: (row) => DISPLAY_NAMES[row.tool] ?? row.tool },
         { header: "Calls", value: (row) => fmt(row.calls, 0), align: "right" },
         {
           header: "Tokens",
@@ -167,32 +178,42 @@ export function renderConsole(summary: Summary): string {
     )
   );
 
-  lines.push("");
   lines.push(
-    `Estimated June billing: ${fmtCredits(summary.totals.credits)} AI credits ($${fmt(summary.totals.usd, 4)})`
+    `Estimated cost: ${fmtCredits(summary.totals.credits)} AI credits | $${fmt(summary.totals.usd, 4)}`
   );
   lines.push("");
-  lines.push("Plan fit");
+  const relevantPlans = summary.plans.filter((plan) =>
+    ["pro", "pro+", "business", "enterprise"].includes(plan.plan)
+  );
   lines.push(
-    ...renderTable(
-      summary.plans.filter((plan) =>
-        ["pro", "pro+", "business", "enterprise"].includes(plan.plan)
-      ),
-      [
-        { header: "Plan", value: (row) => row.plan },
-        {
-          header: "Used",
-          value: (row) => fmtCredits(row.usedCredits),
-          align: "right",
+    ...renderTable(relevantPlans, [
+      { header: "Plan", value: (row) => row.plan },
+      {
+        header: "Included",
+        value: (row) => fmt(row.includedCredits, 0),
+        align: "right",
+      },
+      {
+        header: "Remaining",
+        value: (row) => {
+          const remaining = row.includedCredits - row.usedCredits;
+          return remaining < 0
+            ? fmtCredits(Math.abs(remaining))
+            : fmtCredits(remaining);
         },
-        {
-          header: "Included",
-          value: (row) => fmt(row.includedCredits, 0),
-          align: "right",
+        align: "right",
+      },
+      {
+        header: "%",
+        value: (row) => {
+          const pct =
+            ((row.includedCredits - row.usedCredits) / row.includedCredits) *
+            100;
+          return `${pct < 0 ? "-" : ""}${fmt(Math.abs(pct), 1)}%`;
         },
-        { header: "Verdict", value: (row) => row.verdict },
-      ]
-    )
+        align: "right",
+      },
+    ])
   );
   return lines.join("\n");
 }
