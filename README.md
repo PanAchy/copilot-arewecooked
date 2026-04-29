@@ -33,9 +33,8 @@ Published with npm provenance such that the package is verifiably built from thi
 Don't want to run this yourself? Paste this prompt into your coding agent:
 
 ```
-Clone https://github.com/PanAchy/copilot-arewecooked, install dependencies,
-build it, and run it. Then open the generated HTML report and tell me whether
-I'm going to be cooked under the new Copilot AI-credit billing.
+Clone https://github.com/PanAchy/copilot-arewecooked, install dependencies, build it, and run it.
+Then open the generated HTML report and tell me whether or not I'm going to be cooked under the new Copilot AI-credit billing.
 ```
 
 ## Setup
@@ -84,10 +83,6 @@ npm start -- --json
 | **OpenCode**    | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                | All exact (input, output, cache read/write)        |
 | **Pi**          | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                           | All exact (input, output, cache read/write)        |
 | **Copilot CLI** | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                   | Output exact, input estimated, compaction exact    |
-
-## Contributing
-
-PRs welcome. Run `npm run check` to build and verify, `npm test` to run tests.
 
 ## License
 
