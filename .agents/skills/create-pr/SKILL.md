@@ -7,12 +7,13 @@ description: Create PRs with titles and bodies that produce accurate release not
 
 ## Rules
 
-1. All work targets `develop`. No feature branches, no PRs into develop from branches. Push directly to develop.
-2. PRs are only created when merging `develop` → `main`.
-3. The PR title becomes the release-please changelog entry. The PR body becomes the GitHub Release notes.
-4. Write the title as a single conventional commit summarizing actual diff changes.
-5. Enumerate every meaningful actual diff change in the body.
-6. Never include already-merged historical commits just because they appear in `git log origin/main..develop`.
+1. Create short-lived feature branches from `main` for all work.
+2. Open PRs from feature branches directly into `main`.
+3. Prefer squash merge. The PR title becomes the single Conventional Commit that release-please reads.
+4. The PR title becomes the release-please changelog entry. The PR body becomes the GitHub Release notes.
+5. Write the title as a single conventional commit summarizing actual diff changes.
+6. Enumerate every meaningful actual diff change in the body.
+7. Use `fix(...)` for release-affecting fixes, including broken publish/release automation. Do not use `ci(...)` if the change must trigger a release.
 
 ## PR title format
 
@@ -43,13 +44,14 @@ Pick the highest-impact type: `feat` > `fix` > `refactor` > `test` > `docs` > `c
 ## Before creating the PR
 
 1. Run `git fetch origin`.
-2. Run `git diff origin/main...develop --name-status` to see actual changed files in the PR.
-3. Run `git diff origin/main...develop -- <file>` or `gh pr diff` to understand actual content changes.
-4. Use `git log origin/main..develop --oneline` only as supporting context, never as the source of truth. Merge/release history may contain commits whose changes already exist on `main`.
-5. Synthesize the title and body from the diff, not from commit headlines.
+2. Confirm current branch is a feature branch, not `main` or `develop`: `git branch --show-current`.
+3. Run `git diff origin/main...HEAD --name-status` to see actual changed files in the PR.
+4. Run `git diff origin/main...HEAD -- <file>` to understand actual content changes.
+5. Synthesize the title and body from the diff, not from commit headlines alone.
 6. Verify `npm run build && npm test` passes.
-7. Create PR: `gh pr create --base main --head develop --title "<title>" --body "<body>"`
-8. After creating PR, run `gh pr diff <number> --name-only` and `gh pr view <number> --json files,title,body` to confirm body matches actual changed files.
+7. Push the branch: `git push -u origin <branch>`.
+8. Create PR: `gh pr create --base main --head <branch> --title "<title>" --body "<body>"`.
+9. After creating PR, run `gh pr diff <number> --name-only` and `gh pr view <number> --json files,title,body` to confirm body matches actual changed files.
 
 ## Title quality check
 
