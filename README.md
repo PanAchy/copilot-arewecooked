@@ -73,7 +73,3 @@ npm start -- --json
 | **OpenCode**    | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                | All exact (input, output, cache read/write)        |
 | **Pi**          | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                           | All exact (input, output, cache read/write)        |
 | **Copilot CLI** | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                   | Output exact, input estimated, compaction exact    |
-
-## License
-
-[MIT](./LICENSE)
