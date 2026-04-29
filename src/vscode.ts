@@ -3,14 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
+import { roughTokens } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
-}
-
-function roughTokens(value: unknown): number {
-  if (value == null) return 0;
-  return Math.ceil(JSON.stringify(value).length / 4);
 }
 
 function modelFromRequest(request: any): string {
@@ -47,7 +43,12 @@ function reconstructSession(file: string): any {
   const state: any = {};
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
     if (!line.trim()) continue;
-    const event = JSON.parse(line);
+    let event: any;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      continue;
+    }
     if (event.kind === 0) Object.assign(state, event.v ?? {});
     else if ((event.kind === 1 || event.kind === 2) && Array.isArray(event.k))
       setPath(state, event.k, event.v);
@@ -75,7 +76,15 @@ export function parseVsCode(
     onlyFiles: true,
   });
   for (const file of files) {
-    const session = reconstructSession(file);
+    let session: any;
+    try {
+      session = reconstructSession(file);
+    } catch (err) {
+      finding.notes.push(
+        `Skipping malformed session file: ${err instanceof Error ? err.message : String(err)}`
+      );
+      continue;
+    }
     const sessionId =
       session.sessionId ??
       file

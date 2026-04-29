@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { existsSync } from "node:fs";
-import { buildSummary, costRecords, renderConsole } from "./report.js";
+import { existsSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { buildSummary, costRecords } from "./report.js";
 import { sourceAdapters } from "./sources.js";
+import { renderHtml } from "./html.js";
+
+const pkg = createRequire(import.meta.url)("../package.json");
 
 const program = new Command();
 
@@ -11,13 +15,19 @@ program
   .description(
     "Local GitHub Copilot AI-credit billing estimator for local usage logs."
   )
+  .version(pkg.version)
   .option("--days <days>", "days to look back")
-  .option("--json", "print normalized JSON")
+  .option("--json", "print detailed normalized JSON instead of HTML")
+  .option(
+    "--html [path]",
+    "write HTML report path (default: copilot-report-YYYY-MM-DD.html)"
+  )
   .parse(process.argv);
 
 const options = program.opts<{
   days?: string;
   json?: boolean;
+  html?: boolean | string;
 }>();
 
 let periodDays: number | undefined;
@@ -55,5 +65,14 @@ const summary = buildSummary({
   toolFindings,
 });
 
-if (options.json) console.log(JSON.stringify(summary, null, 2));
-else console.log(renderConsole(summary));
+if (options.json) {
+  console.log(JSON.stringify(summary, null, 2));
+} else {
+  const today = new Date().toISOString().slice(0, 10);
+  const htmlPath =
+    typeof options.html === "string" && options.html
+      ? options.html
+      : `copilot-report-${today}.html`;
+  writeFileSync(htmlPath, renderHtml(summary));
+  console.log(`HTML report written to ${htmlPath}`);
+}

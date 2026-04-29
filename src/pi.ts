@@ -31,7 +31,12 @@ export function parsePi(
     let sessionId: string | undefined;
     for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
       if (!line.trim()) continue;
-      const data = JSON.parse(line);
+      let data: any;
+      try {
+        data = JSON.parse(line);
+      } catch {
+        continue;
+      }
       if (data.type === "session") sessionId = data.id;
       if (data.type !== "message") continue;
       const message = data.message ?? {};
