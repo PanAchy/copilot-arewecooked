@@ -7,12 +7,13 @@
     "copilot-arewecooked": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:css && tsc",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run build:css && tsc --noEmit",
     "prepare": "husky",
-    "check": "npm run build && node dist/cli.js"
+    "check": "npm run build && node dist/cli.js",
+    "build:css": "node scripts/build-report-css.mjs"
   },
   "keywords": [
     "github-copilot",
@@ -29,11 +30,13 @@
     "fast-glob": "^3.3.3"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.2.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
