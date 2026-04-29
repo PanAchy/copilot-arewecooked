@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { existsSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { buildSummary, costRecords } from "./report.js";
 import { sourceAdapters } from "./sources.js";
 import { renderHtml } from "./html.js";
+
+const pkg = createRequire(import.meta.url)("../package.json");
 
 const program = new Command();
 
@@ -12,6 +15,7 @@ program
   .description(
     "Local GitHub Copilot AI-credit billing estimator for local usage logs."
   )
+  .version(pkg.version)
   .option("--days <days>", "days to look back")
   .option("--json", "print detailed normalized JSON instead of HTML")
   .option(
