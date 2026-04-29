@@ -1,0 +1,22 @@
+node_modules/
+dist/
+coverage/
+.nyc_output/
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+*.log
+*.tmp
+
+# Local sample data / private logs
+fixtures/local/
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+
+# Package artifacts
+*.tgz
