@@ -1,6 +1,6 @@
 {
   "name": "copilot-arewecooked",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "Local GitHub Copilot AI-credit billing estimator for usage logs.",
   "type": "module",
   "bin": {
@@ -12,7 +12,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run build:css && tsc",
+    "build": "rm -rf dist && npm run build:css && tsc",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "typecheck": "npm run build:css && tsc --noEmit",
