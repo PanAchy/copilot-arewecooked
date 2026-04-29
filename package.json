@@ -1,11 +1,16 @@
 {
   "name": "copilot-arewecooked",
   "version": "0.3.0",
-  "description": "Local GitHub Copilot AI-credit billing estimator for OpenCode and Pi usage logs.",
+  "description": "Local GitHub Copilot AI-credit billing estimator for usage logs.",
   "type": "module",
   "bin": {
     "copilot-arewecooked": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "npm run build:css && tsc",
     "dev": "tsx src/cli.ts",
@@ -26,6 +31,14 @@
     "pi"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PanAchy/copilot-arewecooked.git"
+  },
+  "homepage": "https://github.com/PanAchy/copilot-arewecooked#readme",
+  "bugs": {
+    "url": "https://github.com/PanAchy/copilot-arewecooked/issues"
+  },
   "dependencies": {
     "better-sqlite3": "^12.5.0",
     "commander": "^14.0.2",
