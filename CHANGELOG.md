@@ -1,19 +1,9 @@
 # Changelog
 
-## [2.0.0](https://github.com/PanAchy/copilot-arewecooked/compare/v1.0.0...v2.0.0) (2026-04-29)
-
-
-### ⚠ BREAKING CHANGES
-
-* **cli:** --opencode-db, --pi-sessions, --copilot-cli-state, --vscode-storage, --no-opencode, --no-pi, --no-copilot-cli, --no-vscode flags removed.
+## 0.2.0 (2026-04-29)
 
 ### Features
 
-* **cli:** simplify to --days and --json only ([23df1bc](https://github.com/PanAchy/copilot-arewecooked/commit/23df1bc6ba614bcbb8a8fd57c638bf175158654e))
-* **report:** improve plan fit table and cost display ([a66d5c5](https://github.com/PanAchy/copilot-arewecooked/commit/a66d5c5e5060ef2509f4dcbb0b6d06cf80d6c250))
-
-## 1.0.0 (2026-04-29)
-
-### Features
-
-- initial Copilot billing estimator ([6f78718](https://github.com/PanAchy/copilot-arewecooked/commit/6f787182a1ff07d8a00900dc197a09946066da0e))
+- initial Copilot billing estimator
+- support VS Code, OpenCode, Pi, and GitHub Copilot CLI sources
+- estimate GitHub Copilot AI-credit cost and plan fit
