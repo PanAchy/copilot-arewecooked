@@ -11,6 +11,12 @@ coverage/
 *.log
 *.tmp
 
+# Generated reports / local browser tooling
+copilot-report-*.html
+mock-report.html
+report.html
+.playwright-cli/
+
 # Local sample data / private logs
 fixtures/local/
 *.db
