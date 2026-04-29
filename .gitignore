@@ -28,3 +28,6 @@ fixtures/local/
 *.tgz
 
 AGENTS.md
+
+# Generated CSS module
+src/report-style.ts
