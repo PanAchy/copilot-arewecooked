@@ -12,7 +12,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run build:css && tsc",
+    "build": "rm -rf dist && npm run build:css && tsc",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "typecheck": "npm run build:css && tsc --noEmit",

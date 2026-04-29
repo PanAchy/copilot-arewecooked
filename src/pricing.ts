@@ -105,10 +105,18 @@ function resolveModel(model: string): string {
   return normalized;
 }
 
+export const UNKNOWN_MODELS = new Set<string>();
+
 export function costRecord(record: UsageRecord): CostedUsageRecord {
   const resolved = resolveModel(record.model);
   const rate = MODEL_PRICES[resolved];
   if (!rate) {
+    if (!UNKNOWN_MODELS.has(resolved)) {
+      UNKNOWN_MODELS.add(resolved);
+      console.warn(
+        `⚠ Unknown model "${resolved}" (from "${record.model}") — no pricing found. Cost will show as zero.`
+      );
+    }
     return {
       ...record,
       usd: 0,
