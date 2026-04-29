@@ -77,7 +77,7 @@ interface TrendPoint {
   credits: number;
 }
 
-function bucketTrend(records: CostedUsageRecord[]): TrendPoint[] {
+export function bucketTrend(records: CostedUsageRecord[]): TrendPoint[] {
   const dated = records
     .map((record) => ({ ts: getTimestamp(record), credits: record.credits }))
     .filter((r): r is { ts: number; credits: number } => r.ts != null)
@@ -264,7 +264,11 @@ function renderWarnings(summary: Summary): string {
     s.notes.filter((n) => n.startsWith("⚠️"))
   );
   if (warnings.length === 0) return "";
-  return `<section class="card warning-card"><h2 class="section-title">⚠️ Data quality warnings</h2>${warnings.map((w) => `<p class="card-note">${escapeHtml(w)}</p>`).join("")}</section>`;
+  const items = warnings
+    .map((w) => w.replace(/^⚠️\s*/, ""))
+    .map((w) => `<p class="warn-item">${escapeHtml(w)}</p>`)
+    .join("");
+  return `<section class="warning-banner"><span class="warn-icon" aria-hidden="true">⚠️</span><div class="warn-content"><p class="warn-title">Data quality warnings</p>${items}</div></section>`;
 }
 
 export function renderHtml(summary: Summary): string {

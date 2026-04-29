@@ -122,11 +122,20 @@
   .card-note {
     @apply mt-auto border-t border-report-border pt-3 text-xs text-report-muted;
   }
-  .warning-card {
-    @apply border-l-4 border-l-report-yellow;
+  .warning-banner {
+    @apply mb-[18px] flex gap-3 rounded-[14px] border border-[#78600a] bg-[#1a1508] px-4 py-3 text-sm;
   }
-  .warning-card .card-note {
-    @apply border-t-0 text-sm text-report-yellow;
+  .warn-icon {
+    @apply flex-none leading-[1.45] text-report-yellow;
+  }
+  .warn-content {
+    @apply flex flex-col gap-1;
+  }
+  .warn-title {
+    @apply font-semibold text-report-yellow;
+  }
+  .warn-item {
+    @apply m-0 text-report-muted;
   }
   .source-card {
     @apply flex flex-col;

@@ -38,6 +38,13 @@ const options = program.opts<{
 let periodDays: number | undefined;
 let sinceMs: number | undefined;
 
+if (options.since && options.days) {
+  console.error(
+    "--since and --days are mutually exclusive; use one or the other"
+  );
+  process.exit(1);
+}
+
 if (options.since) {
   const parsed = Date.parse(options.since);
   if (!Number.isFinite(parsed)) {
