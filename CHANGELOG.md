@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.4...v0.3.5) (2026-04-29)
+
+
+### Bug Fixes
+
+* **publish:** trigger on tag push to bypass GITHUB_TOKEN event restriction ([#31](https://github.com/PanAchy/copilot-arewecooked/issues/31)) ([1b1f562](https://github.com/PanAchy/copilot-arewecooked/commit/1b1f5624a31921508f57b94ea084421e9761a57f))
+
 ## [0.3.4](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.3...v0.3.4) (2026-04-29)
 
 
