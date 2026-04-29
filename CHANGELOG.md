@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.3](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.2...v0.3.3) (2026-04-29)
+
+### Bug Fixes
+
+- warn on unknown models, exclude tests and mock from npm package ([#15](https://github.com/PanAchy/copilot-arewecooked/issues/15)) ([35a1312](https://github.com/PanAchy/copilot-arewecooked/commit/35a1312e1370c5eb32f3b616e3d96e9cfb927a1a))
+
 ## [0.3.2](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.1...v0.3.2) (2026-04-29)
 
 ### Features
