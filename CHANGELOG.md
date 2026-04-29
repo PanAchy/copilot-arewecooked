@@ -2,10 +2,9 @@
 
 ## [0.3.2](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.1...v0.3.2) (2026-04-29)
 
-
 ### Features
 
-* add model aliases, error handling, tests, npm publish, and HTML report improvements ([#12](https://github.com/PanAchy/copilot-arewecooked/issues/12)) ([0e6bbb9](https://github.com/PanAchy/copilot-arewecooked/commit/0e6bbb9a293e315bb7c040c56ff37a1bfdf3c6ff))
+- add model aliases, error handling, tests, npm publish, and HTML report improvements ([#12](https://github.com/PanAchy/copilot-arewecooked/issues/12)) ([0e6bbb9](https://github.com/PanAchy/copilot-arewecooked/commit/0e6bbb9a293e315bb7c040c56ff37a1bfdf3c6ff))
 
 ## [0.3.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.0...v0.3.1) (2026-04-29)
 
