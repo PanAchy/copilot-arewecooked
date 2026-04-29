@@ -1,8 +1,9 @@
 name: publish
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
@@ -21,12 +22,17 @@ jobs:
       contents: read
       id-token: write
     concurrency:
-      group: publish-${{ github.event.release.tag_name || inputs.tag }}
+      group: publish-${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.tag }}
       cancel-in-progress: false
     steps:
       - name: Resolve release tag
         id: release
-        run: echo "tag=${{ github.event.release.tag_name || inputs.tag }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Checkout source
         uses: actions/checkout@v4
