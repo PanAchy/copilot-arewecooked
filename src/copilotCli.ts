@@ -3,14 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { copilotCliStatePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
+import { roughTokens } from "./utils.js";
 
 export function defaultCopilotCliStatePaths(): string[] {
   return copilotCliStatePaths();
-}
-
-function roughTokens(value: unknown): number {
-  if (value == null) return 0;
-  return Math.ceil(JSON.stringify(value).length / 4);
 }
 
 export function parseCopilotCli(
@@ -39,7 +35,12 @@ export function parseCopilotCli(
 
     for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
       if (!line.trim()) continue;
-      const event = JSON.parse(line);
+      let event: any;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
       const timestampMs = event.timestamp
         ? Date.parse(event.timestamp)
         : undefined;

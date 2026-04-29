@@ -1,18 +1,26 @@
 {
   "name": "copilot-arewecooked",
   "version": "0.3.0",
-  "description": "Local GitHub Copilot AI-credit billing estimator for OpenCode and Pi usage logs.",
+  "description": "Local GitHub Copilot AI-credit billing estimator for usage logs.",
   "type": "module",
   "bin": {
     "copilot-arewecooked": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:css && tsc",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run build:css && tsc --noEmit",
     "prepare": "husky",
-    "check": "npm run build && node dist/cli.js"
+    "check": "npm run build && node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:css": "node scripts/build-report-css.mjs"
   },
   "keywords": [
     "github-copilot",
@@ -23,18 +31,29 @@
     "pi"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PanAchy/copilot-arewecooked.git"
+  },
+  "homepage": "https://github.com/PanAchy/copilot-arewecooked#readme",
+  "bugs": {
+    "url": "https://github.com/PanAchy/copilot-arewecooked/issues"
+  },
   "dependencies": {
     "better-sqlite3": "^12.5.0",
     "commander": "^14.0.2",
     "fast-glob": "^3.3.3"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.2.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }

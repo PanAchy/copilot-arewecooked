@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Helvetica, Arial, sans-serif;
+  --color-report-bg: #09090b;
+  --color-report-panel: #0f1014;
+  --color-report-panel-2: #111318;
+  --color-report-border: #27272a;
+  --color-report-text: #fafafa;
+  --color-report-muted: #a1a1aa;
+  --color-report-blue: #60a5fa;
+  --color-report-green: #22c55e;
+  --color-report-yellow: #eab308;
+  --color-report-red: #ef4444;
+  --color-report-purple: #a78bfa;
+  --color-report-cyan: #22d3ee;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply m-0 bg-report-bg text-report-text font-sans text-sm leading-[1.45];
+  }
+}
+
+@layer components {
+  .report-body {
+    @apply bg-gradient-to-b from-[#0b0b10] to-report-bg;
+  }
+  .wrap {
+    @apply mx-auto max-w-6xl px-6 py-9 pb-14;
+  }
+  .top {
+    @apply mb-6 flex items-start justify-between gap-4;
+  }
+  .title {
+    @apply m-0 mb-1.5 text-[30px] leading-[1.1] font-semibold tracking-[-0.03em];
+  }
+  .sub,
+  .muted {
+    @apply text-report-muted;
+  }
+  .repo {
+    @apply rounded-full border border-report-border bg-report-panel-2 px-3 py-1.5 text-report-text no-underline;
+  }
+  .card {
+    @apply mb-[18px] rounded-[14px] border border-report-border bg-report-panel p-5 shadow-sm shadow-black/50;
+  }
+  .section-head {
+    @apply mb-4 flex items-baseline justify-between gap-4;
+  }
+  .section-title {
+    @apply m-0 text-[17px] font-semibold tracking-[-0.01em];
+  }
+  .head-meta {
+    @apply text-[13px] text-report-muted tabular-nums;
+  }
+  .chart {
+    @apply relative h-80;
+  }
+  .chart svg {
+    @apply block h-full w-full;
+  }
+  .middle {
+    @apply grid grid-cols-1 items-stretch gap-4 md:[grid-template-columns:7fr_3fr];
+  }
+  .middle > .card {
+    @apply flex flex-col;
+  }
+  .plan-card {
+    @apply flex flex-col;
+  }
+  .plan-groups {
+    @apply grid flex-1 content-center gap-5 pb-5;
+  }
+  .group-title {
+    @apply mb-2.5 text-xs tracking-[0.04em] text-report-muted uppercase;
+  }
+  .plan-scale {
+    @apply grid gap-3;
+  }
+  .plan-row {
+    @apply grid items-center gap-4 [grid-template-columns:minmax(5.5rem,0.7fr)_minmax(7rem,1fr)_minmax(6.5rem,0.75fr)];
+  }
+  .plan-name {
+    @apply font-semibold;
+  }
+  .plan-sub {
+    @apply mt-0.5 block text-xs font-normal text-report-muted;
+  }
+  .track {
+    @apply relative h-6 overflow-hidden rounded-full border border-report-border bg-[#18181b];
+  }
+  .usage {
+    @apply h-full rounded-full bg-gradient-to-r from-report-blue to-report-purple;
+  }
+  .over .usage {
+    @apply bg-gradient-to-r from-report-yellow to-report-red;
+  }
+  .used {
+    @apply text-right tabular-nums;
+  }
+  .used strong {
+    @apply block font-semibold;
+  }
+  .used span {
+    @apply mt-0.5 block text-xs text-report-muted;
+  }
+  .ok strong {
+    @apply text-report-green;
+  }
+  .warn strong {
+    @apply text-report-yellow;
+  }
+  .bad strong {
+    @apply text-report-red;
+  }
+  .card-note {
+    @apply mt-auto border-t border-report-border pt-3 text-xs text-report-muted;
+  }
+  .source-card {
+    @apply flex flex-col;
+  }
+  .source-bars {
+    @apply grid flex-1 content-center gap-4 pb-5;
+  }
+  .source-row {
+    @apply grid gap-2;
+  }
+  .source-line {
+    @apply grid items-baseline gap-3 text-[13px] leading-[1.35] [grid-template-columns:minmax(0,1fr)_auto];
+  }
+  .source-name {
+    @apply flex items-center gap-2 font-medium text-report-text;
+  }
+  .source-value {
+    @apply text-right tabular-nums;
+  }
+  .source-value strong {
+    @apply block font-medium text-report-text;
+  }
+  .source-value span {
+    @apply block text-xs text-report-muted;
+  }
+  .source-track {
+    @apply h-2 overflow-hidden rounded-full bg-[#18181b];
+  }
+  .source-fill {
+    @apply h-full rounded-full;
+  }
+  .sw {
+    @apply h-2.5 w-2.5 rounded-sm;
+  }
+  table {
+    @apply w-full border-collapse tabular-nums;
+  }
+  th,
+  td {
+    @apply border-b border-report-border px-2 py-2.5;
+  }
+  th {
+    @apply text-left text-xs font-medium text-report-muted;
+  }
+  tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .right {
+    @apply text-right;
+  }
+  .foot {
+    @apply mt-5 flex justify-between gap-3 text-xs text-report-muted;
+  }
+  .foot a {
+    @apply text-report-muted;
+  }
+}
+
+@media (max-width: 930px) {
+  @layer components {
+    .middle {
+      @apply grid-cols-1;
+    }
+    .section-head,
+    .top {
+      @apply block;
+    }
+    .head-meta {
+      @apply mt-1.5;
+    }
+    .repo {
+      @apply mt-3 inline-block;
+    }
+    .plan-row {
+      @apply [grid-template-columns:minmax(5rem,0.7fr)_minmax(6rem,1fr)_minmax(5.75rem,0.8fr)];
+    }
+    .source-line {
+      @apply [grid-template-columns:minmax(0,1fr)_auto];
+    }
+    .wrap {
+      @apply px-4 py-6 pb-11;
+    }
+  }
+}

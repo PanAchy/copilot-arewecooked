@@ -6,13 +6,7 @@ import type {
 } from "./types.js";
 import { comparePlans, costRecord } from "./pricing.js";
 import { renderTable } from "./table.js";
-
-const DISPLAY_NAMES: Record<string, string> = {
-  vscode: "VS Code",
-  opencode: "OpenCode",
-  pi: "Pi",
-  "copilot-cli": "Copilot CLI",
-};
+import { DISPLAY_NAMES } from "./utils.js";
 
 export function buildSummary(args: {
   periodDays?: number;
