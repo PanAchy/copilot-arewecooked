@@ -2,7 +2,13 @@ import type { CostedUsageRecord, Summary } from "./types.js";
 import { REPORT_CSS } from "./report-style.js";
 import { DISPLAY_NAMES } from "./utils.js";
 
-const SOURCE_ORDER = ["vscode", "opencode", "pi", "copilot-cli"];
+const SOURCE_ORDER = [
+  "vscode",
+  "vscode-insiders",
+  "opencode",
+  "pi",
+  "copilot-cli",
+];
 const SOURCE_COLORS = [
   "var(--color-report-blue)",
   "var(--color-report-purple)",

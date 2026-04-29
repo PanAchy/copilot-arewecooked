@@ -1,4 +1,9 @@
-export type SourceKind = "opencode" | "pi" | "copilot-cli" | "vscode";
+export type SourceKind =
+  | "opencode"
+  | "pi"
+  | "copilot-cli"
+  | "vscode"
+  | "vscode-insiders";
 
 export interface UsageRecord {
   source: SourceKind;
