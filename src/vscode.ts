@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
 import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
-import { roughTokens } from "./utils.js";
+import { roughTokens, DISPLAY_NAMES } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
@@ -231,8 +231,9 @@ function parseVsCodeVariant(
         "input/cache tokens are not persisted and output completionTokens are only available when VS Code records them."
     );
     if (zeroOutputPct >= 50) {
+      const displayName = DISPLAY_NAMES[sourceKind] ?? sourceKind;
       finding.notes.push(
-        `⚠️ ${zeroOutputPct}% of records (${zeroOutput}/${records.length}) have zero output tokens. ` +
+        `⚠️ ${displayName}: ${zeroOutputPct}% of records (${zeroOutput}/${records.length}) have zero output tokens. ` +
           "Copilot Chat extension versions 0.38–0.43 (approx. Feb 7 – Apr 14, 2026) " +
           "have a known regression where completionTokens are not persisted to session files. " +
           "Credit totals from this period are significantly underestimated. " +
