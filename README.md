@@ -5,8 +5,7 @@
 </div>
 
 Estimate your GitHub Copilot AI-credit cost in preparation for June 1st.
-Pulls usage from VS Code, OpenCode, Pi, and GitHub Copilot CLI, aggregates it
-based on the new per-token pricing, and generates a local HTML report.
+Pulls usage from VS Code, OpenCode, Pi, and GitHub Copilot CLI, aggregates it based on the new per-token pricing, and generates a local HTML report. **Fully local**.
 
 ![HTML report preview](./docs/assets/report-preview.png)
 
@@ -18,15 +17,6 @@ based on the new per-token pricing, and generates a local HTML report.
 - [Usage-based billing for organizations and enterprises](https://docs.github.com/en/copilot/concepts/billing/usage-based-billing-for-organizations-and-enterprises)
 
 > TL;DR: GitHub Copilot is moving from premium-request quotas to per-token billing on June 1st. Agentic workflows can now cost more than the old premium-request mental model suggests.
-
-## Trust
-
-Runs locally. No network calls. No telemetry. No auth tokens.
-Reads files on disk and generates a report. That's it.
-
-Three dependencies: `commander` for CLI, `better-sqlite3` for reading opencode.db, `fast-glob` for file search.
-
-Published with npm provenance such that the package is verifiably built from this repo.
 
 ## Just let your agent do it
 
