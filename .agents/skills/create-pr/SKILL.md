@@ -10,8 +10,9 @@ description: Create PRs with titles and bodies that produce accurate release not
 1. All work targets `develop`. No feature branches, no PRs into develop from branches. Push directly to develop.
 2. PRs are only created when merging `develop` → `main`.
 3. The PR title becomes the release-please changelog entry. The PR body becomes the GitHub Release notes.
-4. Write the title as a single conventional commit summarizing all changes.
-5. Enumerate every meaningful change in the body.
+4. Write the title as a single conventional commit summarizing actual diff changes.
+5. Enumerate every meaningful actual diff change in the body.
+6. Never include already-merged historical commits just because they appear in `git log origin/main..develop`.
 
 ## PR title format
 
@@ -41,11 +42,14 @@ Pick the highest-impact type: `feat` > `fix` > `refactor` > `test` > `docs` > `c
 
 ## Before creating the PR
 
-1. Run `git log origin/main..develop --oneline` to see all commits since last release.
-2. Read each commit message to understand what changed.
-3. Synthesize into one title and a complete bullet list.
-4. Verify `npm run build && npm test` passes.
-5. Create PR: `gh pr create --base main --head develop --title "<title>" --body "<body>"`
+1. Run `git fetch origin`.
+2. Run `git diff origin/main...develop --name-status` to see actual changed files in the PR.
+3. Run `git diff origin/main...develop -- <file>` or `gh pr diff` to understand actual content changes.
+4. Use `git log origin/main..develop --oneline` only as supporting context, never as the source of truth. Merge/release history may contain commits whose changes already exist on `main`.
+5. Synthesize the title and body from the diff, not from commit headlines.
+6. Verify `npm run build && npm test` passes.
+7. Create PR: `gh pr create --base main --head develop --title "<title>" --body "<body>"`
+8. After creating PR, run `gh pr diff <number> --name-only` and `gh pr view <number> --json files,title,body` to confirm body matches actual changed files.
 
 ## Title quality check
 
