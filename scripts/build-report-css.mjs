@@ -9,7 +9,7 @@ try {
   execFileSync(
     "npx",
     ["tailwindcss", "-i", "src/report.css", "-o", out, "--minify"],
-    { stdio: "inherit" }
+    { stdio: "inherit", shell: process.platform === "win32" }
   );
   const css = readFileSync(out, "utf8");
   writeFileSync(

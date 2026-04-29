@@ -20,7 +20,7 @@ function modelFromRequest(request: any): string {
   if (resolved.includes("grok")) return "grok-code-fast-1";
 
   const modelId = String(request.modelId ?? "").replace(/^copilot\//, "");
-  return modelId === "auto" ? "grok-code-fast-1" : modelId;
+  return modelId;
 }
 
 function setPath(
@@ -56,6 +56,57 @@ function reconstructSession(file: string): any {
   return state;
 }
 
+function collectSessionRequests(file: string): {
+  session: any;
+  requests: any[];
+} {
+  const state: any = {};
+  const requestsById = new Map<string, any>();
+
+  const captureRequest = (request: any) => {
+    if (!request || typeof request !== "object") return;
+    const requestId = request.requestId;
+    if (typeof requestId !== "string" || !requestId) return;
+    requestsById.set(requestId, request);
+  };
+
+  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    let event: any;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      continue;
+    }
+
+    if (event.kind === 0) {
+      Object.assign(state, event.v ?? {});
+      for (const request of state.requests ?? []) captureRequest(request);
+      continue;
+    }
+
+    if ((event.kind === 1 || event.kind === 2) && Array.isArray(event.k)) {
+      setPath(state, event.k, event.v);
+      if (event.k[0] !== "requests") continue;
+
+      if (event.k.length === 1) {
+        for (const request of state.requests ?? []) captureRequest(request);
+        continue;
+      }
+
+      const requestIndex = event.k[1];
+      if (typeof requestIndex === "number") {
+        captureRequest(state.requests?.[requestIndex]);
+      }
+    }
+  }
+
+  return {
+    session: state,
+    requests: [...requestsById.values()],
+  };
+}
+
 export function parseVsCode(
   basePath = defaultVsCodeWorkspaceStoragePaths()[0],
   sinceMs?: number
@@ -77,8 +128,11 @@ export function parseVsCode(
   });
   for (const file of files) {
     let session: any;
+    let sessionRequests: any[];
     try {
-      session = reconstructSession(file);
+      const parsed = collectSessionRequests(file);
+      session = parsed.session;
+      sessionRequests = parsed.requests;
     } catch (err) {
       finding.notes.push(
         `Skipping malformed session file: ${err instanceof Error ? err.message : String(err)}`
@@ -92,7 +146,7 @@ export function parseVsCode(
         .at(-1)
         ?.replace(/\.jsonl$/, "");
 
-    for (const request of session.requests ?? []) {
+    for (const request of sessionRequests) {
       if (!request) continue;
       if (sinceMs && request.timestamp && request.timestamp < sinceMs) continue;
       const metadata = request.result?.metadata ?? {};
@@ -127,7 +181,7 @@ export function parseVsCode(
     finding.notes.push("No VS Code Copilot chat request records found.");
   else
     finding.notes.push(
-      "VS Code session JSONL is patch-reduced before reading. Input/cache tokens are not persisted; output completionTokens are persisted when available."
+      "VS Code session JSONL is an incremental patch stream. Requests are harvested across the event history and deduped by requestId; input/cache tokens are not persisted and output completionTokens are only available when VS Code records them."
     );
   return { finding, records };
 }
