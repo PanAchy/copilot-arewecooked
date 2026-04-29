@@ -19,11 +19,21 @@ based on the new per-token pricing, and generates a local HTML report.
 
 > TL;DR: GitHub Copilot is moving from premium-request quotas to per-token billing on June 1st. Agentic workflows can now cost more than the old premium-request mental model suggests.
 
+## Just let your agent do it
+
+Don't want to run this yourself? Paste this prompt into your coding agent:
+
+```
+Clone https://github.com/PanAchy/copilot-arewecooked, install dependencies,
+build it, and run it. Then open the generated HTML report and tell me whether
+I'm going to be cooked under the new Copilot AI-credit billing.
+```
+
 ## Setup
 
-[Download the latest release](../../releases) and unzip, then:
-
 ```bash
+git clone https://github.com/PanAchy/copilot-arewecooked.git
+cd copilot-arewecooked
 npm install
 npm run build
 npm start
@@ -37,11 +47,11 @@ copilot-report-YYYY-MM-DD.html
 
 ### Options
 
-| Flag     | Description                                |
-| -------- | ------------------------------------------ |
-| `--days` | Days to look back (default: all available) |
-| `--json` | Print detailed normalized JSON             |
-| `--html` | Write HTML report to a specific path       |
+| Flag         | Description                                     |
+| ------------ | ----------------------------------------------- |
+| `--days <n>` | Days to look back (default: all available data) |
+| `--json`     | Print detailed normalized JSON to stdout        |
+| `--html`     | Write HTML report to a specific path            |
 
 ```bash
 npm start -- --days 30
@@ -60,7 +70,7 @@ npm start -- --json
 
 ## Contributing
 
-PRs welcome. Run `npm run check` to build and verify.
+PRs welcome. Run `npm run check` to build and verify, `npm test` to run tests.
 
 ## License
 
