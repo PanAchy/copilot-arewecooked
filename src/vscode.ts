@@ -1,12 +1,16 @@
 import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
-import { vscodeStoragePaths } from "./paths.js";
-import type { SourceFinding, UsageRecord } from "./types.js";
+import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
+import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
 import { roughTokens } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
+}
+
+export function defaultVsCodeInsidersWorkspaceStoragePaths(): string[] {
+  return vscodeInsidersStoragePaths();
 }
 
 function modelFromRequest(request: any): string {
@@ -111,8 +115,23 @@ export function parseVsCode(
   basePath = defaultVsCodeWorkspaceStoragePaths()[0],
   sinceMs?: number
 ): SourceParseResult {
+  return parseVsCodeVariant("vscode", basePath, sinceMs);
+}
+
+export function parseVsCodeInsiders(
+  basePath = defaultVsCodeInsidersWorkspaceStoragePaths()[0],
+  sinceMs?: number
+): SourceParseResult {
+  return parseVsCodeVariant("vscode-insiders", basePath, sinceMs);
+}
+
+function parseVsCodeVariant(
+  sourceKind: SourceKind,
+  basePath: string,
+  sinceMs?: number
+): SourceParseResult {
   const finding: SourceFinding = {
-    source: "vscode",
+    source: sourceKind,
     path: basePath,
     found: existsSync(basePath),
     records: 0,
@@ -156,7 +175,7 @@ export function parseVsCode(
       const command = request.command ?? request.slashCommand?.command;
 
       records.push({
-        source: "vscode",
+        source: sourceKind,
         sourcePath: file,
         sessionId,
         messageId: request.requestId,

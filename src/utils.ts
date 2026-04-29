@@ -5,6 +5,7 @@ export function roughTokens(value: unknown): number {
 
 export const DISPLAY_NAMES: Record<string, string> = {
   vscode: "VS Code",
+  "vscode-insiders": "VS Code Insiders",
   opencode: "OpenCode",
   pi: "Pi",
   "copilot-cli": "Copilot CLI",

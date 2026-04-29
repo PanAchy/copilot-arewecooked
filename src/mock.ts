@@ -15,12 +15,9 @@ const MODELS = [
   "gemini-3-flash",
 ];
 
-const SOURCES: Array<"opencode" | "pi" | "copilot-cli" | "vscode"> = [
-  "opencode",
-  "pi",
-  "copilot-cli",
-  "vscode",
-];
+const SOURCES: Array<
+  "opencode" | "pi" | "copilot-cli" | "vscode" | "vscode-insiders"
+> = ["opencode", "pi", "copilot-cli", "vscode", "vscode-insiders"];
 
 let seed = 42;
 
