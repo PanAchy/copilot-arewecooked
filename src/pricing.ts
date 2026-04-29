@@ -76,6 +76,9 @@ export const MODEL_ALIASES: Record<string, string> = {
   "gpt-4o": "gpt-4.1",
   "gpt-4o-mini": "gpt-5-mini",
   "gemini-3-pro": "gemini-3.1-pro",
+  "gemini-3-flash-preview": "gemini-3-flash",
+  "gemini-3-pro-preview": "gemini-3.1-pro",
+  "gemini-3.1-pro-preview": "gemini-3.1-pro",
   goldeneye: "gpt-5.2-codex",
 };
 
