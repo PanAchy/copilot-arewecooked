@@ -13,8 +13,11 @@ coverage/
 
 # Generated reports / local browser tooling
 copilot-report-*.html
+copilot-report-*.png
 mock-report.html
 report.html
+report-preview.html
+warning-preview.html
 .playwright-cli/
 
 # Local sample data / private logs
@@ -31,3 +34,8 @@ AGENTS.md
 
 # Generated CSS module
 src/report-style.ts
+
+# AI assistant config, design context, and brainstorm sessions
+.opencode/
+.impeccable.md
+.superpowers/
