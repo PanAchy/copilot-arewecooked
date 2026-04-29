@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.0...v0.3.1) (2026-04-29)
+
+
+### Features
+
+* **report:** make HTML the default report ([#9](https://github.com/PanAchy/copilot-arewecooked/issues/9)) ([#10](https://github.com/PanAchy/copilot-arewecooked/issues/10)) ([9a97e12](https://github.com/PanAchy/copilot-arewecooked/commit/9a97e1240c8ba57821d3b8f91e44290448852122))
+
 ## [0.3.0](https://github.com/PanAchy/copilot-arewecooked/compare/copilot-arewecooked-v0.2.0...copilot-arewecooked-v0.3.0) (2026-04-29)
 
 
