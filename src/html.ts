@@ -88,13 +88,16 @@ function bucketTrend(records: CostedUsageRecord[]): TrendPoint[] {
   const first = dated[0]!.ts;
   const last = dated[dated.length - 1]!.ts;
   const dayMs = 24 * 60 * 60 * 1000;
-  const spanDays = Math.max(1, Math.ceil((last - first) / dayMs) + 1);
+  const firstMidnight = new Date(first);
+  firstMidnight.setHours(0, 0, 0, 0);
+  const firstMs = firstMidnight.getTime();
+  const spanDays = Math.max(1, Math.ceil((last - firstMs) / dayMs) + 1);
   const bucketDays = spanDays > 90 ? 7 : 1;
   const map = new Map<number, number>();
 
   for (const record of dated) {
-    const index = Math.floor((record.ts - first) / dayMs / bucketDays);
-    const bucketStart = first + index * bucketDays * dayMs;
+    const index = Math.floor((record.ts - firstMs) / dayMs / bucketDays);
+    const bucketStart = firstMs + index * bucketDays * dayMs;
     map.set(bucketStart, (map.get(bucketStart) ?? 0) + record.credits);
   }
 

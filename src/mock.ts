@@ -118,6 +118,13 @@ const summary = buildSummary({
       records: records.filter((r) => r.source === "vscode").length,
       notes: [],
     },
+    {
+      source: "vscode-insiders",
+      path: "/mock/vscode-insiders",
+      found: true,
+      records: records.filter((r) => r.source === "vscode-insiders").length,
+      notes: [],
+    },
   ],
   records: costed,
   toolFindings: [],
