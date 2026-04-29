@@ -1,6 +1,6 @@
 {
   "name": "copilot-arewecooked",
-  "version": "2.0.0",
+  "version": "0.2.0",
   "description": "Local GitHub Copilot AI-credit billing estimator for OpenCode and Pi usage logs.",
   "type": "module",
   "bin": {
