@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,9 +6,8 @@ import { join } from "node:path";
 const tmp = mkdtempSync(join(tmpdir(), "copilot-report-css-"));
 const out = join(tmp, "report.css");
 try {
-  execFileSync(
-    "npx",
-    ["tailwindcss", "-i", "src/report.css", "-o", out, "--minify"],
+  execSync(
+    `npx tailwindcss -i src/report.css -o "${out}" --minify`,
     { stdio: "inherit" }
   );
   const css = readFileSync(out, "utf8");
