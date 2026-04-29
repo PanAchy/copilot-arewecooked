@@ -60,7 +60,7 @@ export interface PlanComparison {
 
 export interface Summary {
   generatedAt: string;
-  periodDays: number;
+  periodDays?: number;
   sources: SourceFinding[];
   records: CostedUsageRecord[];
   toolFindings: ToolFinding[];

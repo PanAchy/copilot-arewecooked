@@ -2,6 +2,7 @@ import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
 import { copilotCliStatePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
+import type { SourceParseResult } from "./source.js";
 
 export function defaultCopilotCliStatePaths(): string[] {
   return copilotCliStatePaths();
@@ -15,7 +16,7 @@ function roughTokens(value: unknown): number {
 export function parseCopilotCli(
   basePath = defaultCopilotCliStatePaths()[0],
   sinceMs?: number
-): { finding: SourceFinding; records: UsageRecord[] } {
+): SourceParseResult {
   const finding: SourceFinding = {
     source: "copilot-cli",
     path: basePath,

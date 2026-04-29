@@ -1,85 +1,89 @@
-# GitHub Copilot, are we cooked?
+<div align="center">
 
-_Are your Copilot AI credits cooked?_
+# Yo GitHub Copilot: are we cooked?
+
+</div>
 
 Estimate your GitHub Copilot AI-credit cost in preparation for June 1st.
-This will allow you to pull usage out of:
+Pulls usage from VS Code, OpenCode, Pi, and GitHub Copilot CLI, aggregates
+it based on the new per-token pricing, and tells you if you're over or under.
 
-- VS Code
-- OpenCode
-- Pi
-- GitHub Copilot CLI
-
-and aggregate it based on the new costs, to help you know if you are over or under.
-
-#### Relevant information
+#### Relevant links
 
 - [April 27th, 2026: GitHub Copilot is moving to usage-based billing](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/)
 - [Models and per-token pricing for GitHub Copilot](https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing#model-multipliers-for-annual-copilot-pro-and-copilot-pro-subscribers)
 - [Usage-based billing for individuals](https://docs.github.com/en/copilot/concepts/billing/usage-based-billing-for-individuals)
 - [Usage-based billing for organizations and enterprises](https://docs.github.com/en/copilot/concepts/billing/usage-based-billing-for-organizations-and-enterprises)
 
-_TL;DR The premium request system allowed users with the right set of orchestration (e.g. subagents) to become very efficient at using their GitHub Copilot subscription. These orchestration techniques stop mattering because billing is moving to input/output/cache token based pricing._
+> TL;DR: GitHub Copilot is moving from premium-request quotas to per-token billing on June 1st. Orchestration tricks such as the use of subagents no longer saves you usage on this plan.
 
-## Run
+## Setup
+
+[Download the latest release](../../releases) and unzip, then:
 
 ```bash
 npm install
 npm run build
-node dist/cli.js
+npm start
 ```
 
-Options:
+### Options
+
+| Flag     | Description                      |
+| -------- | -------------------------------- |
+| `--days` | Days to look back (default: all) |
+| `--json` | Print normalized JSON            |
 
 ```bash
-node dist/cli.js --days 30
-node dist/cli.js --json
-node dist/cli.js --no-vscode
-node dist/cli.js --no-opencode
-node dist/cli.js --no-pi
-node dist/cli.js --no-copilot-cli
+npm start -- --days 30
+npm start -- --json
+```
+
+### Example output
+
+```bash
+npm start
+Period: all available data
+
+Sources
+Tool         Calls  Tokens  Credits
+-----------  -----  ------  -------
+OpenCode         7  70,494     1.13
+Pi               2   9,308    0.254
+Copilot CLI      6  60,433    2.297
+VS Code          3   3,354    0.031
+
+Tokens
+Type         Tokens
+-----------  ------
+Input        65,798
+Output       11,743
+Cache read   66,048
+Cache write       0
+
+Estimated cost: 3.712 AI credits | $0.0371
+
+Plan         Included  Remaining       %
+----------  ---------  ---------  ------
+pro            1,000      996.3   99.6%
+pro+           3,900    3,896.3   99.9%
+business       1,900    1,896.3   99.8%
+enterprise     3,900    3,896.3   99.9%
 ```
 
 ## How data is extracted
 
-### VS Code Copilot
+| Source          | Paths                                                                                                                                                                                                                                       | Token accuracy                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **VS Code**     | `~/Library/Application Support/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (macOS) · `%APPDATA%/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (Windows) · `~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl` (Linux) | Input estimated, output exact, cache not persisted |
+| **OpenCode**    | `~/.local/share/opencode/opencode.db` (macOS and Linux)`%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                   | All exact (input, output, cache read/write)        |
+| **Pi**          | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                           | All exact (input, output, cache read/write)        |
+| **Copilot CLI** | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                   | Output exact, input estimated, compaction exact    |
 
-Paths checked:
+## Contributing
 
-`~/Library/Application Support/Code/User/workspaceStorage/*/chatSessions/*.jsonl`
+PRs welcome. Run `npm run check` to build and verify.
 
-`%APPDATA%/Code/User/workspaceStorage/*/chatSessions/*.jsonl`
+## License
 
-`~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl`
-
-Uses patch-reduced chat session requests; exact `completionTokens`; input estimated from rendered context; cache tokens not persisted.
-
-### OpenCode
-
-Paths checked:
-
-`~/.local/share/opencode/opencode.db`
-
-`~/Library/Application Support/opencode/opencode.db`
-
-`%LOCALAPPDATA%/opencode/opencode.db`
-
-`%APPDATA%/opencode/opencode.db`
-
-Uses `message.data` assistant rows where `providerID === "github-copilot"`; exact `tokens.input`, `tokens.output`, `tokens.cache.read/write`; tool counts from `part.data` for `question`, `task`, `delegate_task`.
-
-### Pi
-
-Paths checked:
-
-`~/.pi/agent/sessions/**/*.jsonl`
-
-Uses assistant messages where `provider === "github-copilot"`; exact `usage.input`, `usage.output`, `usage.cacheRead/cacheWrite`.
-
-### GitHub Copilot CLI
-
-Paths checked:
-
-`~/.copilot/session-state/*/events.jsonl`
-
-Uses normal assistant messages for exact `outputTokens`; input is estimated from local event content; compaction events expose exact `compactionTokensUsed`.
+[MIT](./LICENSE)

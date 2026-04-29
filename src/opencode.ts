@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { existsSync } from "node:fs";
 import { opencodeDbPaths } from "./paths.js";
 import type { SourceFinding, ToolFinding, UsageRecord } from "./types.js";
+import type { SourceParseResult } from "./source.js";
 
 export function defaultOpenCodeDbPaths(): string[] {
   return opencodeDbPaths();
@@ -17,11 +18,7 @@ function isCopilotProvider(provider?: string, model?: string): boolean {
 export function parseOpenCode(
   path = defaultOpenCodeDbPaths()[0],
   sinceMs?: number
-): {
-  finding: SourceFinding;
-  records: UsageRecord[];
-  toolFindings: ToolFinding[];
-} {
+): SourceParseResult {
   const finding: SourceFinding = {
     source: "opencode",
     path,
