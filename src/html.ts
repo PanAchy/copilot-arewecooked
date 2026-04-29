@@ -1,12 +1,6 @@
 import type { CostedUsageRecord, Summary } from "./types.js";
 import { REPORT_CSS } from "./report-style.js";
-
-const DISPLAY_NAMES: Record<string, string> = {
-  vscode: "VS Code",
-  opencode: "OpenCode",
-  pi: "Pi",
-  "copilot-cli": "Copilot CLI",
-};
+import { DISPLAY_NAMES } from "./utils.js";
 
 const SOURCE_ORDER = ["vscode", "opencode", "pi", "copilot-cli"];
 const SOURCE_COLORS = [
