@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
 import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
-import { roughTokens } from "./utils.js";
+import { roughTokens, DISPLAY_NAMES } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
@@ -76,7 +76,20 @@ function collectSessionRequests(file: string): {
     if (!request || typeof request !== "object") return;
     const requestId = request.requestId;
     if (typeof requestId !== "string" || !requestId) return;
-    requestsById.set(requestId, request);
+    const existing = requestsById.get(requestId);
+    if (existing) {
+      // Preserve the highest completionTokens seen — kind:2 replacement events
+      // often drop or reset completionTokens that were accumulated via patches.
+      const prevTokens = existing.completionTokens ?? 0;
+      const newTokens = request.completionTokens ?? 0;
+      requestsById.set(requestId, {
+        ...existing,
+        ...request,
+        completionTokens: Math.max(prevTokens, newTokens),
+      });
+    } else {
+      requestsById.set(requestId, request);
+    }
   };
 
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
@@ -207,11 +220,26 @@ function parseVsCodeVariant(
   }
 
   finding.records = records.length;
-  if (records.length === 0)
+  if (records.length === 0) {
     finding.notes.push("No VS Code Copilot chat request records found.");
-  else
+  } else {
+    const zeroOutput = records.filter((r) => r.outputTokens === 0).length;
+    const zeroOutputPct = Math.round((100 * zeroOutput) / records.length);
     finding.notes.push(
-      "VS Code session JSONL is an incremental patch stream. Requests are harvested across the event history and deduped by requestId; input/cache tokens are not persisted and output completionTokens are only available when VS Code records them."
+      "VS Code session JSONL is an incremental patch stream. " +
+        "Requests are harvested across the event history and deduped by requestId; " +
+        "input/cache tokens are not persisted and output completionTokens are only available when VS Code records them."
     );
+    if (zeroOutputPct >= 50) {
+      const displayName = DISPLAY_NAMES[sourceKind] ?? sourceKind;
+      finding.notes.push(
+        `⚠️ ${displayName}: ${zeroOutputPct}% of records (${zeroOutput}/${records.length}) have zero output tokens. ` +
+          "Copilot Chat extension versions 0.38–0.43 (approx. Feb 7 – Apr 14, 2026) " +
+          "have a known regression where completionTokens are not persisted to session files. " +
+          "Credit totals from this period are significantly underestimated. " +
+          "Use --since 2026-04-15 or --days to limit the report to a period with accurate data."
+      );
+    }
+  }
   return { finding, records };
 }

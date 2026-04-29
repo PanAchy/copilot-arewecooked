@@ -17,6 +17,10 @@ program
   )
   .version(pkg.version)
   .option("--days <days>", "days to look back")
+  .option(
+    "--since <date>",
+    "only include records from this date onward (YYYY-MM-DD)"
+  )
   .option("--json", "print detailed normalized JSON instead of HTML")
   .option(
     "--html [path]",
@@ -26,6 +30,7 @@ program
 
 const options = program.opts<{
   days?: string;
+  since?: string;
   json?: boolean;
   html?: boolean | string;
 }>();
@@ -33,7 +38,14 @@ const options = program.opts<{
 let periodDays: number | undefined;
 let sinceMs: number | undefined;
 
-if (options.days) {
+if (options.since) {
+  const parsed = Date.parse(options.since);
+  if (!Number.isFinite(parsed)) {
+    console.error("--since must be a valid date (YYYY-MM-DD)");
+    process.exit(1);
+  }
+  sinceMs = parsed;
+} else if (options.days) {
   periodDays = Number.parseInt(options.days, 10);
   if (!Number.isFinite(periodDays) || periodDays <= 0) {
     console.error("--days must be a positive integer");
