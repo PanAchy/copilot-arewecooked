@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.6](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.5...v0.3.6) (2026-04-30)
+
+
+### Bug Fixes
+
+* handle SQLITE_TOOBIG and silent data loss in opencode parser ([#36](https://github.com/PanAchy/copilot-arewecooked/issues/36)) ([b34d5ba](https://github.com/PanAchy/copilot-arewecooked/commit/b34d5ba28a577490cb650e14b3227c2fa47d4d0f))
+
 ## [0.3.5](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.4...v0.3.5) (2026-04-29)
 
 
