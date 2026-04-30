@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { copilotCliStatePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
-import { roughTokens } from "./utils.js";
+import { roughTokens, readLinesFromFile } from "./utils.js";
 
 export function defaultCopilotCliStatePaths(): string[] {
   return copilotCliStatePaths();
@@ -33,7 +33,7 @@ export function parseCopilotCli(
     let currentModel = "gpt-5-mini";
     let pendingInputEstimate = 0;
 
-    for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    for (const line of readLinesFromFile(file)) {
       if (!line.trim()) continue;
       let event: any;
       try {

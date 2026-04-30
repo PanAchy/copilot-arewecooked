@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { piSessionsPaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
+import { readLinesFromFile } from "./utils.js";
 
 export function defaultPiSessionsPaths(): string[] {
   return piSessionsPaths();
@@ -29,7 +30,7 @@ export function parsePi(
   });
   for (const file of files) {
     let sessionId: string | undefined;
-    for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    for (const line of readLinesFromFile(file)) {
       if (!line.trim()) continue;
       let data: any;
       try {
