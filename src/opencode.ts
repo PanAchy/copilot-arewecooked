@@ -15,6 +15,128 @@ function isCopilotProvider(provider?: string, model?: string): boolean {
   );
 }
 
+type MsgRow = {
+  id: string;
+  session_id: string;
+  ts: number | null;
+  prov: string | null;
+  mdl: string | null;
+  mprov: string | null;
+  mmdl: string | null;
+  t_in: number | null;
+  t_out: number | null;
+  t_cr: number | null;
+  t_cw: number | null;
+  parent: string | null;
+  mode: string | null;
+  agent: string | null;
+  summary: unknown;
+};
+
+const MSG_SELECT = `
+  SELECT id, session_id,
+    json_extract(data,'$.time.created')       AS ts,
+    json_extract(data,'$.providerID')          AS prov,
+    json_extract(data,'$.modelID')             AS mdl,
+    json_extract(data,'$.model.providerID')    AS mprov,
+    json_extract(data,'$.model.modelID')       AS mmdl,
+    json_extract(data,'$.tokens.input')        AS t_in,
+    json_extract(data,'$.tokens.output')       AS t_out,
+    json_extract(data,'$.tokens.cache.read')   AS t_cr,
+    json_extract(data,'$.tokens.cache.write')  AS t_cw,
+    json_extract(data,'$.parentID')            AS parent,
+    json_extract(data,'$.mode')                AS mode,
+    json_extract(data,'$.agent')               AS agent,
+    json_extract(data,'$.summary')             AS summary
+  FROM message`;
+
+const WHERE_ASSISTANT = `json_extract(data,'$.role') = 'assistant'`;
+const WHERE_SINCE = `json_extract(data,'$.time.created') >= ?`;
+
+/**
+ * Fetch all assistant message rows, falling back to rowid-chunked scanning
+ * if any blob exceeds Node.js/SQLite's in-memory size limit (SQLITE_TOOBIG).
+ *
+ * Fast path: single query over the whole table.
+ * Slow path: scan by rowid chunks of CHUNK_SIZE, then one-by-one on chunk failure.
+ * Unreadable rows are identified by message ID + session ID (those columns never
+ * require reading the data blob) and reported in finding.notes.
+ */
+function fetchMsgRows(
+  db: Database.Database,
+  sinceMs: number | undefined,
+  finding: SourceFinding
+): MsgRow[] {
+  const whereClause = sinceMs
+    ? `${WHERE_ASSISTANT} AND ${WHERE_SINCE}`
+    : WHERE_ASSISTANT;
+
+  // ── Fast path ────────────────────────────────────────────────────────────
+  const fastStmt = db.prepare(`${MSG_SELECT} WHERE ${whereClause}`);
+  try {
+    return (sinceMs ? fastStmt.all(sinceMs) : fastStmt.all()) as MsgRow[];
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException)?.code !== "SQLITE_TOOBIG") throw e;
+  }
+
+  // ── Slow path: rowid-chunked scan ────────────────────────────────────────
+  const CHUNK_SIZE = 200;
+  const results: MsgRow[] = [];
+  const skipped: { id: string; session_id: string }[] = [];
+
+  // Rowid scan never touches the data column — always safe.
+  const allRowids = db
+    .prepare("SELECT rowid FROM message ORDER BY rowid")
+    .pluck()
+    .all() as number[];
+
+  for (let i = 0; i < allRowids.length; i += CHUNK_SIZE) {
+    const chunk = allRowids.slice(i, i + CHUNK_SIZE);
+    const ph = chunk.map(() => "?").join(",");
+    const chunkWhere = `rowid IN (${ph}) AND ${whereClause}`;
+    const chunkArgs = sinceMs ? ([...chunk, sinceMs] as unknown[]) : chunk;
+
+    try {
+      const rows = db
+        .prepare(`${MSG_SELECT} WHERE ${chunkWhere}`)
+        .all(...chunkArgs) as MsgRow[];
+      results.push(...rows);
+    } catch (e: unknown) {
+      if ((e as NodeJS.ErrnoException)?.code !== "SQLITE_TOOBIG") throw e;
+
+      // Narrow down: try one row at a time within the failing chunk.
+      for (const rowid of chunk) {
+        const singleArgs = sinceMs ? ([rowid, sinceMs] as unknown[]) : [rowid];
+        try {
+          const rows = db
+            .prepare(`${MSG_SELECT} WHERE rowid = ? AND ${whereClause}`)
+            .all(...singleArgs) as MsgRow[];
+          results.push(...rows);
+        } catch (e2: unknown) {
+          if ((e2 as NodeJS.ErrnoException)?.code !== "SQLITE_TOOBIG") throw e2;
+
+          // Data blob is truly unreadable. Retrieve identity columns only
+          // (they never require loading the data blob).
+          const meta = db
+            .prepare("SELECT id, session_id FROM message WHERE rowid = ?")
+            .get(rowid) as { id: string; session_id: string } | undefined;
+          if (meta) skipped.push(meta);
+        }
+      }
+    }
+  }
+
+  if (skipped.length > 0) {
+    finding.notes.push(
+      `Warning: ${skipped.length} message(s) could not be read because their data ` +
+        `blob exceeds Node.js memory limits. Token counts may be understated. ` +
+        `Affected message IDs: ${skipped.map((m) => `${m.id} (session: ${m.session_id})`).join(", ")}`
+    );
+  }
+
+  return results;
+}
+
 export function parseOpenCode(
   path = defaultOpenCodeDbPaths()[0],
   sinceMs?: number
@@ -42,69 +164,7 @@ export function parseOpenCode(
   }
 
   try {
-    // Fetch only the scalar fields we need via json_extract — avoids full JSON.parse in JS
-    // for each row. Large blobs (>2 MB) are skipped: confirmed zero assistant-role rows
-    // exceed that threshold, so there is no data loss.
-    const msgStmt = sinceMs
-      ? db.prepare(`
-          SELECT id, session_id,
-            json_extract(data,'$.time.created')       AS ts,
-            json_extract(data,'$.providerID')          AS prov,
-            json_extract(data,'$.modelID')             AS mdl,
-            json_extract(data,'$.model.providerID')    AS mprov,
-            json_extract(data,'$.model.modelID')       AS mmdl,
-            json_extract(data,'$.tokens.input')        AS t_in,
-            json_extract(data,'$.tokens.output')       AS t_out,
-            json_extract(data,'$.tokens.cache.read')   AS t_cr,
-            json_extract(data,'$.tokens.cache.write')  AS t_cw,
-            json_extract(data,'$.parentID')            AS parent,
-            json_extract(data,'$.mode')                AS mode,
-            json_extract(data,'$.agent')               AS agent,
-            json_extract(data,'$.summary')             AS summary
-          FROM message
-          WHERE json_extract(data,'$.role') = 'assistant'
-            AND length(data) < 2000000
-            AND json_extract(data,'$.time.created') >= ?`)
-      : db.prepare(`
-          SELECT id, session_id,
-            json_extract(data,'$.time.created')       AS ts,
-            json_extract(data,'$.providerID')          AS prov,
-            json_extract(data,'$.modelID')             AS mdl,
-            json_extract(data,'$.model.providerID')    AS mprov,
-            json_extract(data,'$.model.modelID')       AS mmdl,
-            json_extract(data,'$.tokens.input')        AS t_in,
-            json_extract(data,'$.tokens.output')       AS t_out,
-            json_extract(data,'$.tokens.cache.read')   AS t_cr,
-            json_extract(data,'$.tokens.cache.write')  AS t_cw,
-            json_extract(data,'$.parentID')            AS parent,
-            json_extract(data,'$.mode')                AS mode,
-            json_extract(data,'$.agent')               AS agent,
-            json_extract(data,'$.summary')             AS summary
-          FROM message
-          WHERE json_extract(data,'$.role') = 'assistant'
-            AND length(data) < 2000000`);
-
-    type MsgRow = {
-      id: string;
-      session_id: string;
-      ts: number | null;
-      prov: string | null;
-      mdl: string | null;
-      mprov: string | null;
-      mmdl: string | null;
-      t_in: number | null;
-      t_out: number | null;
-      t_cr: number | null;
-      t_cw: number | null;
-      parent: string | null;
-      mode: string | null;
-      agent: string | null;
-      summary: unknown;
-    };
-
-    const msgRows = (
-      sinceMs ? msgStmt.all(sinceMs) : msgStmt.all()
-    ) as MsgRow[];
+    const msgRows = fetchMsgRows(db, sinceMs, finding);
 
     for (const row of msgRows) {
       const provider = row.prov ?? row.mprov ?? undefined;
@@ -129,7 +189,8 @@ export function parseOpenCode(
         isCompaction:
           row.mode === "compaction" ||
           row.agent === "compaction" ||
-          row.summary === true,
+          row.summary === true ||
+          row.summary === 1,
       });
     }
 
@@ -137,9 +198,6 @@ export function parseOpenCode(
       records.map((record) => record.sessionId).filter(Boolean)
     );
     if (copilotSessions.size > 0) {
-      // Fetch tool parts directly via json_extract — no JSON.parse in JS.
-      // Large part blobs (>500 KB) are skipped: only 11 tool parts in the entire
-      // dataset exceed that size, negligible impact on tool-call counts.
       type PartRow = {
         session_id: string;
         tool: string | null;
