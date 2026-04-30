@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
 import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
-import { roughTokens, DISPLAY_NAMES } from "./utils.js";
+import { roughTokens, DISPLAY_NAMES, readLinesFromFile } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
   return vscodeStoragePaths();
@@ -50,7 +50,7 @@ function setPath(
 
 function reconstructSession(file: string): any {
   const state: any = Object.create(null);
-  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+  for (const line of readLinesFromFile(file)) {
     if (!line.trim()) continue;
     let event: any;
     try {
@@ -92,7 +92,7 @@ function collectSessionRequests(file: string): {
     }
   };
 
-  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+  for (const line of readLinesFromFile(file)) {
     if (!line.trim()) continue;
     let event: any;
     try {
