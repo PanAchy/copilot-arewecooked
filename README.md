@@ -2,6 +2,9 @@
 
 # Yo GitHub Copilot: are we cooked?
 
+[![npm version](https://img.shields.io/npm/v/copilot-arewecooked)](https://www.npmjs.com/package/copilot-arewecooked)
+[![npm downloads](https://img.shields.io/npm/dw/copilot-arewecooked)](https://www.npmjs.com/package/copilot-arewecooked)
+
 </div>
 
 Estimate your GitHub Copilot AI-credit cost in preparation for June 1st.
