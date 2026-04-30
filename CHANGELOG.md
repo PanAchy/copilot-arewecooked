@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.5](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.4...v0.3.5) (2026-04-29)
+
+
+### Bug Fixes
+
+* **publish:** trigger on tag push to bypass GITHUB_TOKEN event restriction ([#31](https://github.com/PanAchy/copilot-arewecooked/issues/31)) ([1b1f562](https://github.com/PanAchy/copilot-arewecooked/commit/1b1f5624a31921508f57b94ea084421e9761a57f))
+
+## [0.3.4](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.3...v0.3.4) (2026-04-29)
+
+
+### Features
+
+* add VS Code Insiders as a separate source ([#22](https://github.com/PanAchy/copilot-arewecooked/issues/22)) ([e22bcf4](https://github.com/PanAchy/copilot-arewecooked/commit/e22bcf4cd14cc77b61c09d26ca5f543e96393ebf))
+* redesign report cards, add PNG export, opencode perf, Gemini aliases, and new tests ([#28](https://github.com/PanAchy/copilot-arewecooked/issues/28)) ([48bc85a](https://github.com/PanAchy/copilot-arewecooked/commit/48bc85a45e9d646263df50578f01545ca645032c))
+* warn about missing output tokens + add --since flag ([#26](https://github.com/PanAchy/copilot-arewecooked/issues/26)) ([668b2c3](https://github.com/PanAchy/copilot-arewecooked/commit/668b2c36165d95fd17bf997461191c7609cde356))
+
+
+### Bug Fixes
+
+* prototype pollution in setPath, sinceMs filter, chart bucketing, mock findings ([#27](https://github.com/PanAchy/copilot-arewecooked/issues/27)) ([28f7468](https://github.com/PanAchy/copilot-arewecooked/commit/28f7468a0d0fa7c7e11a55a7e7bdddd08e89a861))
+* Windows cross-platform build and VS Code session history parser ([#21](https://github.com/PanAchy/copilot-arewecooked/issues/21)) ([9864225](https://github.com/PanAchy/copilot-arewecooked/commit/9864225f8477e30b9dc92c0e2a59248a522a13b2))
+
 ## [0.3.3](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.2...v0.3.3) (2026-04-29)
 
 ### Bug Fixes
