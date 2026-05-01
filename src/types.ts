@@ -66,6 +66,7 @@ export interface PlanComparison {
 export interface Summary {
   generatedAt: string;
   periodDays?: number;
+  autoModel?: string;
   sources: SourceFinding[];
   records: CostedUsageRecord[];
   toolFindings: ToolFinding[];
