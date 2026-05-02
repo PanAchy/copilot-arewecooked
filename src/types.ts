@@ -92,6 +92,7 @@ export interface Summary {
       inputTokens: number;
       outputTokens: number;
       cacheReadTokens: number;
+      cacheWriteTokens: number;
     }
   >;
   plans: PlanComparison[];

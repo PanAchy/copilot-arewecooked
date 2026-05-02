@@ -8,7 +8,7 @@ import {
 } from "../pricing.js";
 import type { UsageRecord } from "../types.js";
 import { roughTokens, DISPLAY_NAMES } from "../utils.js";
-import { buildSummary, costRecords } from "../report.js";
+import { buildSummary, costRecords, renderConsole } from "../report.js";
 import type { CostedUsageRecord, SourceFinding } from "../types.js";
 
 // ---------------------------------------------------------------------------
@@ -467,6 +467,58 @@ describe("buildSummary", () => {
     expect(summary.totals.credits).toBeGreaterThan(0);
     expect(summary.plans.length).toBe(Object.keys(PLANS).length);
     expect(Object.keys(summary.byModel)).toHaveLength(2);
+  });
+
+  it("renders console report with subscriptions before model usage and token totals", () => {
+    const records = costRecords([
+      {
+        source: "opencode",
+        sourcePath: "/mock",
+        provider: "github-copilot",
+        model: "gpt-5-mini",
+        inputTokens: 100_000,
+        outputTokens: 50_000,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      },
+      {
+        source: "pi",
+        sourcePath: "/mock",
+        provider: "github-copilot",
+        model: "claude-sonnet-4.5",
+        inputTokens: 200_000,
+        outputTokens: 100_000,
+        cacheReadTokens: 50_000,
+        cacheWriteTokens: 0,
+      },
+    ]);
+    const summary = buildSummary({
+      findings: [
+        {
+          source: "opencode",
+          path: "/mock",
+          found: true,
+          records: 1,
+          notes: [],
+        },
+        { source: "pi", path: "/mock", found: true, records: 1, notes: [] },
+      ],
+      records,
+      toolFindings: [],
+    });
+
+    const output = renderConsole(summary);
+    expect(output).toContain("Included credit comparison");
+    expect(output).toContain("Monthly average");
+    expect(output).toContain("Model usage and cost (total)");
+    expect(output).not.toContain("Token totals");
+    expect(output).toContain("Cache write");
+    expect(output).toContain("gpt-5-mini");
+    expect(output).toContain("claude-sonnet-4.5");
+    expect(output).toContain("Total");
+    expect(output.indexOf("Included credit comparison")).toBeLessThan(
+      output.indexOf("Model usage and cost")
+    );
   });
 
   it("handles empty records", () => {
