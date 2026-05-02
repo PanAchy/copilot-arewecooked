@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.5.0...v0.6.0) (2026-05-02)
+
+
+### Features
+
+* **cli:** add terminal report flag ([29cc9e7](https://github.com/PanAchy/copilot-arewecooked/commit/29cc9e7fb9ae73aeeba9114941933b859022fd0e))
+* **cli:** add terminal report flag ([3f170db](https://github.com/PanAchy/copilot-arewecooked/commit/3f170db0ffebc4c0952e22b2def3fe0ede597378))
+
+
+### Bug Fixes
+
+* **pricing:** update Goldeneye rate ([a104870](https://github.com/PanAchy/copilot-arewecooked/commit/a104870e4510dfe4462d22c404f33a0e53d0f138))
+* **pricing:** update Goldeneye rate ([d9e9c68](https://github.com/PanAchy/copilot-arewecooked/commit/d9e9c68b1c1095f07ea0a025cfba35a2cf7e0e25))
+
 ## [0.5.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.4.0...v0.5.0) (2026-05-02)
 
 
