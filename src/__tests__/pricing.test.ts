@@ -126,6 +126,23 @@ describe("model aliases", () => {
     expect(result.pricingKnown).toBe(true);
   });
 
+  it("prices Goldeneye with its direct published rate", () => {
+    const record: UsageRecord = {
+      source: "opencode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "goldeneye",
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("goldeneye");
+    expect(result.pricingKnown).toBe(true);
+    expect(result.usd).toBeCloseTo(11.25, 6);
+  });
+
   it("still returns unknown for truly unknown models", () => {
     const record: UsageRecord = {
       source: "opencode",

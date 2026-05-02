@@ -64,7 +64,7 @@ export const MODEL_PRICES: Record<string, PriceRate> = {
   "gemini-2.5-pro": { input: 1.25, cachedInput: 0.125, output: 10.0 },
   "gemini-3-flash": { input: 0.5, cachedInput: 0.05, output: 3.0 },
   "gemini-3.1-pro": { input: 2.0, cachedInput: 0.2, output: 12.0 },
-  goldeneye: { input: 1.75, cachedInput: 0.175, output: 14.0 },
+  goldeneye: { input: 1.25, cachedInput: 0.125, output: 10.0 },
 };
 
 // Map older/unlisted models to the closest priced equivalent.
@@ -79,7 +79,6 @@ export const MODEL_ALIASES: Record<string, string> = {
   "gemini-3-flash-preview": "gemini-3-flash",
   "gemini-3-pro-preview": "gemini-3.1-pro",
   "gemini-3.1-pro-preview": "gemini-3.1-pro",
-  goldeneye: "gpt-5.2-codex",
 };
 
 export const PLANS: Record<string, number> = {

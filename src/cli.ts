@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import puppeteer from "puppeteer";
-import { buildSummary, costRecords } from "./report.js";
+import { buildSummary, costRecords, renderConsole } from "./report.js";
 import { sourceAdapters } from "./sources.js";
 import { renderHtml } from "./html.js";
 
@@ -32,6 +32,7 @@ program
     "only include records from this date onward (YYYY-MM-DD)"
   )
   .option("--json", "print detailed normalized JSON instead of HTML")
+  .option("--terminal", "print a compact terminal report instead of HTML/PNG")
   .option(
     "--html [path]",
     "write HTML report path (default: copilot-report-YYYY-MM-DD-<hex>.html)"
@@ -46,6 +47,7 @@ const options = program.opts<{
   days?: string;
   since?: string;
   json?: boolean;
+  terminal?: boolean;
   html?: boolean | string;
   autoModel?: string;
 }>();
@@ -57,6 +59,20 @@ const autoModel = options.autoModel?.trim() || undefined;
 if (options.since && options.days) {
   console.error(
     "--since and --days are mutually exclusive; use one or the other"
+  );
+  process.exit(1);
+}
+
+if (options.json && options.terminal) {
+  console.error(
+    "--json and --terminal are mutually exclusive; use one or the other"
+  );
+  process.exit(1);
+}
+
+if (options.html && options.terminal) {
+  console.error(
+    "--html and --terminal are mutually exclusive; use one or the other"
   );
   process.exit(1);
 }
@@ -116,6 +132,8 @@ dbg("buildSummary", tSummary);
 
 if (options.json) {
   console.log(JSON.stringify(summary, null, 2));
+} else if (options.terminal) {
+  console.log(renderConsole(summary));
 } else {
   const today = new Date().toISOString().slice(0, 10);
   const hexId = randomBytes(3).toString("hex");
