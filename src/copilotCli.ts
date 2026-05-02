@@ -9,7 +9,7 @@ import {
 } from "./shutdownMetrics.js";
 import { roughTokens, readLinesFromFile } from "./utils.js";
 
-const FALLBACK_MODEL = "auto";
+const FALLBACK_MODEL = "unknown";
 
 export function defaultCopilotCliStatePaths(): string[] {
   return copilotCliStatePaths();

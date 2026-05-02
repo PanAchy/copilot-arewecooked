@@ -73,7 +73,7 @@ describe("parseCopilotCli", () => {
     expect(finding.notes.join("\n")).toContain("exact session.shutdown");
   });
 
-  it("falls back to auto model instead of hard-coding a model", () => {
+  it("falls back to unknown model when model data is missing", () => {
     writeEvents("s1", [
       {
         type: "session.start",
@@ -99,7 +99,7 @@ describe("parseCopilotCli", () => {
 
     expect(records).toHaveLength(1);
     expect(records[0]).toMatchObject({
-      model: "auto",
+      model: "unknown",
       outputTokens: 7,
       calls: 1,
     });
