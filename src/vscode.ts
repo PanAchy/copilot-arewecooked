@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { vscodeStoragePaths, vscodeInsidersStoragePaths } from "./paths.js";
 import type { SourceFinding, SourceKind, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
+import { recordsFromShutdownModelMetrics } from "./shutdownMetrics.js";
 import { roughTokens, DISPLAY_NAMES, readLinesFromFile } from "./utils.js";
 
 export function defaultVsCodeWorkspaceStoragePaths(): string[] {
@@ -158,6 +159,44 @@ function parseVsCodeVariant(
   const records: UsageRecord[] = [];
   if (!finding.found) return { finding, records };
 
+  const exactSessionIds = new Set<string>();
+  const transcriptFiles = fg.sync("*/GitHub.copilot-chat/transcripts/*.jsonl", {
+    cwd: basePath,
+    absolute: true,
+    onlyFiles: true,
+  });
+  let exactTranscriptSessions = 0;
+  for (const file of transcriptFiles) {
+    let sessionId: string | undefined;
+    let fileHadShutdown = false;
+    for (const line of readLinesFromFile(file)) {
+      if (!line.trim()) continue;
+      let event: any;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (event.type === "session.start") {
+        sessionId = event.data?.sessionId ?? sessionId;
+      }
+      const shutdownRecords = recordsFromShutdownModelMetrics({
+        source: sourceKind,
+        sourcePath: file,
+        sessionId,
+        event,
+        sinceMs,
+      });
+      if (shutdownRecords.length === 0) continue;
+      fileHadShutdown = true;
+      records.push(...shutdownRecords);
+    }
+    if (fileHadShutdown) {
+      exactTranscriptSessions += 1;
+      if (sessionId) exactSessionIds.add(sessionId);
+    }
+  }
+
   const files = fg.sync("*/chatSessions/*.jsonl", {
     cwd: basePath,
     absolute: true,
@@ -182,6 +221,8 @@ function parseVsCodeVariant(
         .split("/")
         .at(-1)
         ?.replace(/\.jsonl$/, "");
+
+    if (sessionId && exactSessionIds.has(sessionId)) continue;
 
     for (const request of sessionRequests) {
       if (!request) continue;
@@ -224,6 +265,11 @@ function parseVsCodeVariant(
   if (records.length === 0) {
     finding.notes.push("No VS Code Copilot chat request records found.");
   } else {
+    if (exactTranscriptSessions > 0) {
+      finding.notes.push(
+        `${exactTranscriptSessions} VS Code transcript session(s) had exact session.shutdown modelMetrics. Tokens are exact for those sessions.`
+      );
+    }
     const zeroOutput = records.filter((r) => r.outputTokens === 0).length;
     const zeroOutputPct = Math.round((100 * zeroOutput) / records.length);
     finding.notes.push(

@@ -3,6 +3,10 @@ import { existsSync } from "node:fs";
 import { copilotCliStatePaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
+import {
+  eventTimestampMs,
+  recordsFromShutdownModelMetrics,
+} from "./shutdownMetrics.js";
 import { roughTokens, readLinesFromFile } from "./utils.js";
 
 const FALLBACK_MODEL = "auto";
@@ -66,12 +70,16 @@ function parseCopilotCliSession(
 ): { kind: SessionParseKind; records: UsageRecord[] } {
   const events = readJsonlEvents(file);
   const sessionId = findSessionId(events);
-  const shutdownRecords = recordsFromShutdownModelMetrics(
-    file,
+  const shutdown = [...events]
+    .reverse()
+    .find((event) => event.type === "session.shutdown");
+  const shutdownRecords = recordsFromShutdownModelMetrics({
+    source: "copilot-cli",
+    sourcePath: file,
     sessionId,
-    events,
-    sinceMs
-  );
+    event: shutdown,
+    sinceMs,
+  });
   if (shutdownRecords.length > 0)
     return { kind: "shutdown", records: shutdownRecords };
 
@@ -105,50 +113,6 @@ function findSessionId(events: any[]): string | undefined {
     if (event.type === "session.start") return event.data?.sessionId;
   }
   return undefined;
-}
-
-function eventTimestampMs(event: any): number | undefined {
-  const timestampMs = event.timestamp ? Date.parse(event.timestamp) : undefined;
-  return Number.isFinite(timestampMs) ? timestampMs : undefined;
-}
-
-function recordsFromShutdownModelMetrics(
-  file: string,
-  sessionId: string | undefined,
-  events: any[],
-  sinceMs?: number
-): UsageRecord[] {
-  const shutdown = [...events]
-    .reverse()
-    .find((event) => event.type === "session.shutdown");
-  if (!shutdown?.data?.modelMetrics) return [];
-
-  const shutdownTimestampMs = eventTimestampMs(shutdown);
-  if (sinceMs && shutdownTimestampMs && shutdownTimestampMs < sinceMs)
-    return [];
-
-  return Object.entries<any>(shutdown.data.modelMetrics).map(
-    ([model, metrics]) => {
-      const usage = metrics.usage ?? {};
-      return {
-        source: "copilot-cli",
-        sourcePath: file,
-        sessionId,
-        messageId: shutdown.id,
-        parentId: shutdown.parentId,
-        timestamp: shutdown.timestamp,
-        provider: "github-copilot",
-        model,
-        inputTokens: usage.inputTokens ?? 0,
-        outputTokens: usage.outputTokens ?? 0,
-        cacheReadTokens: usage.cacheReadTokens ?? 0,
-        cacheWriteTokens: usage.cacheWriteTokens ?? 0,
-        calls: metrics.requests?.count ?? 1,
-        mode: "session.shutdown",
-        isCompaction: false,
-      };
-    }
-  );
 }
 
 function estimateRecordsFromAssistantMessages(
