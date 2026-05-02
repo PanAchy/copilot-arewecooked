@@ -138,13 +138,27 @@ function renderTrend(points: TrendPoint[]): string {
     .join(" ");
   const area = `${path} L ${x(points.length - 1)} ${height - p.b} L ${p.l} ${height - p.b} Z`;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(max * t));
+  const monthMarkers = points
+    .map((point, i) => {
+      const match = point.date.match(/^(?:Week of )?([A-Z][a-z]{2})\b/);
+      return match ? { month: match[1]!, index: i } : undefined;
+    })
+    .filter(
+      (marker): marker is { month: string; index: number } => marker != null
+    )
+    .filter(
+      (marker, i, markers) =>
+        marker.index > 0 && marker.month !== markers[i - 1]?.month
+    );
   const first = escapeHtml(points[0]!.date);
   const last = escapeHtml(points[points.length - 1]!.date);
 
   return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Credit usage trend">
 <defs><linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#60a5fa" stop-opacity="0"/></linearGradient></defs>
 <g stroke="#27272a">${ticks.map((v) => `<line x1="${p.l}" y1="${y(v)}" x2="${width - p.r}" y2="${y(v)}"/>`).join("")}</g>
+<g stroke="#3f3f46" stroke-dasharray="4 6" opacity=".75">${monthMarkers.map((marker) => `<line x1="${x(marker.index)}" y1="${p.t}" x2="${x(marker.index)}" y2="${height - p.b}"/>`).join("")}</g>
 <g fill="#a1a1aa" font-size="13">${ticks.map((v) => `<text x="6" y="${y(v) + 4}">${fmtInt(v)}</text>`).join("")}<text x="${p.l}" y="${height - 10}">${first}</text><text text-anchor="end" x="${width - p.r}" y="${height - 10}">${last}</text></g>
+<g fill="#71717a" font-size="11" text-anchor="middle">${monthMarkers.map((marker) => `<text x="${x(marker.index)}" y="${height - 24}">${escapeHtml(marker.month)}</text>`).join("")}</g>
 <path d="${area}" fill="url(#trendGrad)" opacity=".24"/><path d="${path}" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 ${pts.map(([cx, cy], i) => `<circle cx="${cx}" cy="${cy}" r="4" fill="#60a5fa"><title>${escapeHtml(points[i]!.date)}: ${fmt(points[i]!.credits)} credits</title></circle>`).join("")}
 </svg>`;
