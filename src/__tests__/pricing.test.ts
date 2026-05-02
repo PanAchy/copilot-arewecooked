@@ -241,18 +241,33 @@ describe("costRecord", () => {
     expect(result.credits).toBe(0);
   });
 
+  it("does not double charge cache reads already included in input tokens", () => {
+    const record: UsageRecord = {
+      ...baseRecord,
+      model: "claude-opus-4.7",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 900_000,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    // claude-opus-4.7: 100k non-cached input * $5/M + 900k cached * $0.50/M = $0.95
+    expect(result.usd).toBeCloseTo(0.95, 6);
+    expect(result.credits).toBeCloseTo(95, 4);
+  });
+
   it("costs claude-opus-4.7 correctly with all token types", () => {
     const record: UsageRecord = {
       ...baseRecord,
       model: "claude-opus-4.7",
-      inputTokens: 500_000,
+      inputTokens: 1_500_000,
       outputTokens: 200_000,
       cacheReadTokens: 1_000_000,
       cacheWriteTokens: 300_000,
     };
     const rate = MODEL_PRICES["claude-opus-4.7"]!;
     const expected =
-      (500_000 * rate.input +
+      ((1_500_000 - 1_000_000) * rate.input +
         1_000_000 * rate.cachedInput +
         300_000 * (rate.cacheWrite ?? rate.cachedInput) +
         200_000 * rate.output) /

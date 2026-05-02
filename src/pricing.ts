@@ -135,8 +135,12 @@ export function costRecord(record: UsageRecord): CostedUsageRecord {
     };
   }
 
+  const nonCachedInputTokens = Math.max(
+    0,
+    record.inputTokens - record.cacheReadTokens
+  );
   const usd =
-    (record.inputTokens * rate.input +
+    (nonCachedInputTokens * rate.input +
       record.cacheReadTokens * rate.cachedInput +
       record.cacheWriteTokens * (rate.cacheWrite ?? rate.cachedInput) +
       record.outputTokens * rate.output) /
