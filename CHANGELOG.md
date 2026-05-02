@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.6...v0.4.0) (2026-05-02)
+
+
+### Features
+
+* add --auto-model option for cost estimation and update HTML report ([6f801d2](https://github.com/PanAchy/copilot-arewecooked/commit/6f801d280796bd8c0e9b89ae8496fb400d5291c5))
+* add --auto-model option for cost estimation and update HTML report ([111d21a](https://github.com/PanAchy/copilot-arewecooked/commit/111d21a8713b3dc518dd0592e7e3272007b69ec4))
+* **auto-model:** support pricing records reported as auto ([3d42538](https://github.com/PanAchy/copilot-arewecooked/commit/3d425384f1446a2dcb9c6a968f385d9ff8aab55d))
+
+
+### Bug Fixes
+
+* **auto-model:** preserve original model when remapping ([38338cb](https://github.com/PanAchy/copilot-arewecooked/commit/38338cbcd7499542300cfd00527e1c1176feaf02))
+* **auto-model:** preserve original model when remapping ([4f07c96](https://github.com/PanAchy/copilot-arewecooked/commit/4f07c96bac5e1a494048563913f41687b02c4302))
+
 ## [0.3.6](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.5...v0.3.6) (2026-04-30)
 
 
