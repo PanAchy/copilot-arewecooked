@@ -61,6 +61,7 @@ export function parsePi(
         outputTokens: usage.output ?? 0,
         cacheReadTokens: usage.cacheRead ?? 0,
         cacheWriteTokens: usage.cacheWrite ?? 0,
+        calls: 1,
         isCompaction: false,
       });
     }

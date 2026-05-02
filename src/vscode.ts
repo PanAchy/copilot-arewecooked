@@ -211,6 +211,7 @@ function parseVsCodeVariant(
         outputTokens: request.completionTokens ?? 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
         mode: command === "compact" ? "compaction" : request.modeInfo?.modeId,
         agent: request.agent?.id,
         isCompaction:

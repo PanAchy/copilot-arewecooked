@@ -73,6 +73,7 @@ function generateYearOfData(): UsageRecord[] {
         outputTokens: Math.floor(rand(200, 2000) * outputMult * rampFactor),
         cacheReadTokens: Math.floor(rand(0, 4000) * inputMult * rampFactor),
         cacheWriteTokens: Math.floor(rand(0, 500) * rampFactor),
+        calls: 1,
       });
     }
   }
