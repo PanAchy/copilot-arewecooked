@@ -1,2 +1,4 @@
 npx lint-staged
+npm run preview:readme
+git add docs/assets/report-preview.png
 npm run typecheck
