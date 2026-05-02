@@ -116,9 +116,15 @@ export function costRecord(record: UsageRecord): CostedUsageRecord {
   if (!rate) {
     if (!UNKNOWN_MODELS.has(resolved)) {
       UNKNOWN_MODELS.add(resolved);
-      console.warn(
-        `⚠ Unknown model "${resolved}" (from "${record.model}") — no pricing found. Cost will show as zero.`
-      );
+      if (resolved === "auto") {
+        console.warn(
+          "⚠ Copilot Auto model selected — routed model is not present in local fallback logs. Use --auto-model to price these records."
+        );
+      } else {
+        console.warn(
+          `⚠ Unknown model "${resolved}" (from "${record.model}") — no pricing found. Cost will show as zero.`
+        );
+      }
     }
     return {
       ...record,
@@ -129,8 +135,12 @@ export function costRecord(record: UsageRecord): CostedUsageRecord {
     };
   }
 
+  const nonCachedInputTokens = Math.max(
+    0,
+    record.inputTokens - record.cacheReadTokens
+  );
   const usd =
-    (record.inputTokens * rate.input +
+    (nonCachedInputTokens * rate.input +
       record.cacheReadTokens * rate.cachedInput +
       record.cacheWriteTokens * (rate.cacheWrite ?? rate.cachedInput) +
       record.outputTokens * rate.output) /

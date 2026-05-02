@@ -184,6 +184,7 @@ export function parseOpenCode(
         outputTokens: row.t_out ?? 0,
         cacheReadTokens: row.t_cr ?? 0,
         cacheWriteTokens: row.t_cw ?? 0,
+        calls: 1,
         mode: row.mode ?? undefined,
         agent: row.agent ?? undefined,
         isCompaction:

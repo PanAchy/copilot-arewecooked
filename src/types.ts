@@ -21,6 +21,7 @@ export interface UsageRecord {
   mode?: string;
   agent?: string;
   isCompaction?: boolean;
+  calls: number;
 }
 
 export interface SourceFinding {

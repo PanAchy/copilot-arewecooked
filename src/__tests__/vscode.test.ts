@@ -30,10 +30,11 @@ function writeSession(
     requestId: string;
     timestamp?: number | string;
     completionTokens?: number;
-  }>
+  }>,
+  sessionId = "test-session"
 ): void {
   const state = {
-    sessionId: "test-session",
+    sessionId,
     requests,
   };
   const line = JSON.stringify({ kind: 0, v: state });
@@ -42,6 +43,120 @@ function writeSession(
     line + "\n"
   );
 }
+
+function writeTranscript(events: any[], sessionId = "test-session"): void {
+  const dir = join(
+    tmpBase,
+    "workspace123",
+    "GitHub.copilot-chat",
+    "transcripts"
+  );
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, `${sessionId}.jsonl`),
+    events.map((event) => JSON.stringify(event)).join("\n") + "\n"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// transcript shutdown metrics
+// ---------------------------------------------------------------------------
+
+describe("parseVsCode — transcript shutdown metrics", () => {
+  it("uses exact session.shutdown modelMetrics from Copilot transcripts", () => {
+    writeTranscript(
+      [
+        {
+          type: "session.start",
+          data: { sessionId: "transcript-session" },
+          id: "start",
+          timestamp: "2026-05-01T00:00:00.000Z",
+        },
+        {
+          type: "session.shutdown",
+          data: {
+            modelMetrics: {
+              "claude-opus-4.6": {
+                requests: { count: 56, cost: 6 },
+                usage: {
+                  inputTokens: 5258144,
+                  outputTokens: 32857,
+                  cacheReadTokens: 4803569,
+                  cacheWriteTokens: 0,
+                },
+              },
+            },
+          },
+          id: "shutdown",
+          timestamp: "2026-05-01T00:00:01.000Z",
+        },
+      ],
+      "transcript-session"
+    );
+
+    const { finding, records } = parseVsCode(tmpBase);
+
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      source: "vscode",
+      sessionId: "transcript-session",
+      model: "claude-opus-4.6",
+      inputTokens: 5258144,
+      outputTokens: 32857,
+      cacheReadTokens: 4803569,
+      calls: 56,
+      mode: "session.shutdown",
+    });
+    expect(finding.notes.join("\n")).toContain("exact session.shutdown");
+  });
+
+  it("skips lower-confidence chat session fallback when same session has shutdown metrics", () => {
+    writeTranscript(
+      [
+        {
+          type: "session.start",
+          data: { sessionId: "same-session" },
+          id: "start",
+          timestamp: "2026-05-01T00:00:00.000Z",
+        },
+        {
+          type: "session.shutdown",
+          data: {
+            modelMetrics: {
+              "gpt-5-mini": {
+                requests: { count: 2, cost: 1 },
+                usage: {
+                  inputTokens: 100,
+                  outputTokens: 20,
+                  cacheReadTokens: 10,
+                  cacheWriteTokens: 0,
+                },
+              },
+            },
+          },
+          id: "shutdown",
+          timestamp: "2026-05-01T00:00:01.000Z",
+        },
+      ],
+      "same-session"
+    );
+    writeSession(
+      [
+        {
+          requestId: "fallback",
+          timestamp: "2026-05-01T00:00:01.000Z",
+          completionTokens: 999,
+        },
+      ],
+      "same-session"
+    );
+
+    const { records } = parseVsCode(tmpBase);
+
+    expect(records).toHaveLength(1);
+    expect(records[0]?.outputTokens).toBe(20);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // sinceMs filter — numeric timestamps
