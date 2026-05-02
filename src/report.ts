@@ -10,6 +10,7 @@ import { DISPLAY_NAMES } from "./utils.js";
 
 export function buildSummary(args: {
   periodDays?: number;
+  autoModel?: string;
   findings: SourceFinding[];
   records: CostedUsageRecord[];
   toolFindings: ToolFinding[];
@@ -72,6 +73,7 @@ export function buildSummary(args: {
   return {
     generatedAt: new Date().toISOString(),
     periodDays: args.periodDays,
+    autoModel: args.autoModel,
     sources: args.findings,
     records: args.records,
     toolFindings: args.toolFindings,
@@ -82,9 +84,16 @@ export function buildSummary(args: {
 }
 
 export function costRecords(
-  records: Parameters<typeof costRecord>[0][]
+  records: Parameters<typeof costRecord>[0][],
+  options?: { autoModel?: string }
 ): CostedUsageRecord[] {
-  return records.map(costRecord);
+  const autoModel = options?.autoModel;
+  return records.map((record) => {
+    if (autoModel && record.model.toLowerCase().trim() === "auto") {
+      return costRecord({ ...record, model: autoModel });
+    }
+    return costRecord(record);
+  });
 }
 
 function fmt(n: number, digits = 2): string {
