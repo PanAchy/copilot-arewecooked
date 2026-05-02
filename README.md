@@ -2,6 +2,9 @@
 
 # Yo GitHub Copilot: are we cooked?
 
+[![npm version](https://img.shields.io/npm/v/copilot-arewecooked)](https://www.npmjs.com/package/copilot-arewecooked)
+[![npm downloads](https://img.shields.io/npm/dw/copilot-arewecooked)](https://www.npmjs.com/package/copilot-arewecooked)
+
 </div>
 
 Estimate your GitHub Copilot AI-credit cost in preparation for June 1st.
@@ -54,17 +57,23 @@ copilot-report-YYYY-MM-DD-abc123.png
 
 ### Options
 
-| Flag         | Description                                     |
-| ------------ | ----------------------------------------------- |
-| `--days <n>` | Days to look back (default: all available data) |
-| `--json`     | Print detailed normalized JSON to stdout        |
-| `--html`     | Write HTML report to a specific path            |
+| Flag                   | Description                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `--days <n>`           | Days to look back (default: all available data)                                                 |
+| `--since <date>`       | Only include records from this date onward (YYYY-MM-DD)                                         |
+| `--auto-model <model>` | Treat records reported as `auto` as a specific model for cost estimation (e.g. `gpt-5.3-codex`) |
+| `--json`               | Print detailed normalized JSON to stdout                                                        |
+| `--html [path]`        | Write HTML report to a specific path                                                            |
 
 ```bash
 npm run generate -- --days 30
+npm run generate -- --since 2026-04-15
+npm run generate -- --auto-model gpt-5.3-codex
 npm run generate -- --html report.html
 npm run generate -- --json
 ```
+
+> **Note on `auto` model:** Some tools (e.g. VS Code Copilot) may report the model as `auto` when the user has not selected a specific model. Credits for those requests will show as zero unless you specify `--auto-model` to map them to a known priced model. The HTML report will include a note when any `auto` records are remapped.
 
 ## How data is extracted
 

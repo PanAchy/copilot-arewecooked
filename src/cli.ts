@@ -36,6 +36,10 @@ program
     "--html [path]",
     "write HTML report path (default: copilot-report-YYYY-MM-DD-<hex>.html)"
   )
+  .option(
+    "--auto-model <model>",
+    "treat records reported as 'auto' as this specific model (e.g. gpt-5.3-codex)"
+  )
   .parse(process.argv);
 
 const options = program.opts<{
@@ -43,10 +47,12 @@ const options = program.opts<{
   since?: string;
   json?: boolean;
   html?: boolean | string;
+  autoModel?: string;
 }>();
 
 let periodDays: number | undefined;
 let sinceMs: number | undefined;
+const autoModel = options.autoModel?.trim() || undefined;
 
 if (options.since && options.days) {
   console.error(
@@ -95,12 +101,13 @@ for (const adapter of Object.values(sourceAdapters)) {
 dbg("all sources parsed", t0);
 
 const tCost = Date.now();
-const costed = costRecords(records);
+const costed = costRecords(records, { autoModel });
 dbg("costRecords", tCost);
 
 const tSummary = Date.now();
 const summary = buildSummary({
   periodDays,
+  autoModel,
   findings,
   records: costed,
   toolFindings,
