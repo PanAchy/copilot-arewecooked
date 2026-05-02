@@ -27,7 +27,7 @@ export function buildSummary(args: {
   );
   const totals = args.records.reduce(
     (acc, record) => {
-      acc.calls += 1;
+      acc.calls += record.calls ?? 1;
       acc.inputTokens += record.inputTokens;
       acc.outputTokens += record.outputTokens;
       acc.cacheReadTokens += record.cacheReadTokens;
@@ -72,7 +72,7 @@ export function buildSummary(args: {
       outputTokens: 0,
       cacheReadTokens: 0,
     };
-    byModel[key].calls += 1;
+    byModel[key].calls += record.calls ?? 1;
     byModel[key].credits += record.credits;
     byModel[key].inputTokens += record.inputTokens;
     byModel[key].outputTokens += record.outputTokens;
