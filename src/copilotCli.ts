@@ -70,16 +70,17 @@ function parseCopilotCliSession(
 ): { kind: SessionParseKind; records: UsageRecord[] } {
   const events = readJsonlEvents(file);
   const sessionId = findSessionId(events);
-  const shutdown = [...events]
-    .reverse()
-    .find((event) => event.type === "session.shutdown");
-  const shutdownRecords = recordsFromShutdownModelMetrics({
-    source: "copilot-cli",
-    sourcePath: file,
-    sessionId,
-    event: shutdown,
-    sinceMs,
-  });
+  const shutdownRecords = events
+    .filter((event) => event.type === "session.shutdown")
+    .flatMap((event) =>
+      recordsFromShutdownModelMetrics({
+        source: "copilot-cli",
+        sourcePath: file,
+        sessionId,
+        event,
+        sinceMs,
+      })
+    );
   if (shutdownRecords.length > 0)
     return { kind: "shutdown", records: shutdownRecords };
 

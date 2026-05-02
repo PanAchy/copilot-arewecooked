@@ -73,6 +73,76 @@ describe("parseCopilotCli", () => {
     expect(finding.notes.join("\n")).toContain("exact session.shutdown");
   });
 
+  it("adds multiple shutdown segments from resumed sessions", () => {
+    writeEvents("s1", [
+      {
+        type: "session.start",
+        data: { sessionId: "s1" },
+        id: "start",
+        timestamp: "2026-04-23T00:00:00.000Z",
+      },
+      {
+        type: "session.shutdown",
+        id: "shutdown-1",
+        timestamp: "2026-04-23T00:56:41.384Z",
+        data: {
+          modelMetrics: {
+            "claude-opus-4.7": {
+              requests: { count: 121, cost: 82.5 },
+              usage: {
+                inputTokens: 11538077,
+                outputTokens: 72829,
+                cacheReadTokens: 11027120,
+                cacheWriteTokens: 0,
+              },
+            },
+            "gpt-5.4": {
+              requests: { count: 12, cost: 0 },
+              usage: {
+                inputTokens: 562472,
+                outputTokens: 7635,
+                cacheReadTokens: 504064,
+                cacheWriteTokens: 0,
+              },
+            },
+          },
+        },
+      },
+      {
+        type: "session.shutdown",
+        id: "shutdown-2",
+        timestamp: "2026-04-26T13:45:51.780Z",
+        data: {
+          modelMetrics: {
+            "claude-opus-4.7": {
+              requests: { count: 1, cost: 7.5 },
+              usage: {
+                inputTokens: 77758,
+                outputTokens: 150,
+                cacheReadTokens: 0,
+                cacheWriteTokens: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    const { records } = parseCopilotCli(tmpBase);
+
+    expect(records).toHaveLength(3);
+    const opusRecords = records.filter((r) => r.model === "claude-opus-4.7");
+    expect(opusRecords).toHaveLength(2);
+    expect(opusRecords.reduce((sum, r) => sum + r.calls, 0)).toBe(122);
+    expect(opusRecords.reduce((sum, r) => sum + r.inputTokens, 0)).toBe(
+      11615835
+    );
+    expect(records.find((r) => r.model === "gpt-5.4")).toMatchObject({
+      calls: 12,
+      inputTokens: 562472,
+    });
+  });
+
   it("does not double count assistant messages or compactions when shutdown metrics exist", () => {
     writeEvents("s1", [
       {
