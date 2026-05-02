@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.6.1...v0.7.0) (2026-05-02)
+
+
+### Features
+
+* **report:** add month markers to usage trend ([dec2576](https://github.com/PanAchy/copilot-arewecooked/commit/dec2576c33e0c1940565f70327dfd9e2f06926af))
+
+
+### Bug Fixes
+
+* **release:** set repo for publish dispatch ([fe41874](https://github.com/PanAchy/copilot-arewecooked/commit/fe41874074ebc2d4adb1561ce2dcf4c0e55cd5da))
+
 ## [0.6.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.6.0...v0.6.1) (2026-05-02)
 
 
