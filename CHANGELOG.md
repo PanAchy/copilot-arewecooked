@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.4.0...v0.5.0) (2026-05-02)
+
+
+### Features
+
+* **copilot-cli:** use shutdown metrics ([f57e0e7](https://github.com/PanAchy/copilot-arewecooked/commit/f57e0e74fa67b603696f5cef12cca7163eae2bfc))
+* **sources:** read exact Copilot shutdown metrics ([8b7eb07](https://github.com/PanAchy/copilot-arewecooked/commit/8b7eb07b70b4bea0f40e27bb2685670a5527dee6))
+* **vscode:** read transcript shutdown metrics ([15c41d1](https://github.com/PanAchy/copilot-arewecooked/commit/15c41d1d862d5ee597540ecdc1dcf8ebab1f1a8d))
+
+
+### Bug Fixes
+
+* **copilot-cli:** distinguish unknown model fallback ([7bf10ea](https://github.com/PanAchy/copilot-arewecooked/commit/7bf10ea42b6dcc4a307038b2c325b065c97ee45b))
+* **copilot-cli:** sum resumed shutdown segments ([f4ff545](https://github.com/PanAchy/copilot-arewecooked/commit/f4ff5456fa2a3ecf4db732cfa59db21471a6c090))
+* **pricing:** avoid double charging cached input ([a9ea26b](https://github.com/PanAchy/copilot-arewecooked/commit/a9ea26b018ea87d6f9041a829c28a45238c663da))
+* **report:** clarify total versus monthly usage ([0f57c5f](https://github.com/PanAchy/copilot-arewecooked/commit/0f57c5fa00a2a6388af362849cd51100259eda13))
+
 ## [0.4.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.3.6...v0.4.0) (2026-05-02)
 
 
