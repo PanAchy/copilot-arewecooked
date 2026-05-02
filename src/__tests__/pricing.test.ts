@@ -453,6 +453,45 @@ describe("buildSummary", () => {
     ).toBe(true);
   });
 
+  it("counts auto-model remaps only when records were actually remapped", () => {
+    const records = costRecords(
+      [
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "auto",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "gpt-5-mini",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+      ],
+      { autoModel: "gpt-5.3-codex" }
+    );
+
+    const summary = buildSummary({
+      autoModel: "gpt-5.3-codex",
+      findings: [],
+      records,
+      toolFindings: [],
+    });
+
+    expect(summary.autoModelAppliedCount).toBe(1);
+    expect(summary.byModel["gpt-5.3-codex"]!.calls).toBe(1);
+    expect(summary.byModel["gpt-5-mini"]!.calls).toBe(1);
+  });
+
   it("counts unique sessions", () => {
     const records = costRecords([
       {
@@ -523,6 +562,51 @@ describe("costRecords", () => {
     ]);
     expect(results).toHaveLength(1);
     expect(results[0]!.pricingKnown).toBe(true);
+    expect(results[0]!.pricingModel).toBe("gpt-5-mini");
+    expect(results[0]!.usd).toBeCloseTo(0.25, 6);
+  });
+
+  it("prices auto records with --auto-model while preserving original model", () => {
+    const results = costRecords(
+      [
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "auto",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+      ],
+      { autoModel: " gpt-5.3-codex " }
+    );
+
+    expect(results[0]!.model).toBe("auto");
+    expect(results[0]!.pricingModel).toBe("gpt-5.3-codex");
+    expect(results[0]!.pricingKnown).toBe(true);
+    expect(results[0]!.usd).toBeCloseTo(1.75, 6);
+  });
+
+  it("does not remap non-auto records", () => {
+    const results = costRecords(
+      [
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "gpt-5-mini",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+      ],
+      { autoModel: "gpt-5.3-codex" }
+    );
+
+    expect(results[0]!.model).toBe("gpt-5-mini");
     expect(results[0]!.pricingModel).toBe("gpt-5-mini");
     expect(results[0]!.usd).toBeCloseTo(0.25, 6);
   });

@@ -52,6 +52,7 @@ const options = program.opts<{
 
 let periodDays: number | undefined;
 let sinceMs: number | undefined;
+const autoModel = options.autoModel?.trim() || undefined;
 
 if (options.since && options.days) {
   console.error(
@@ -100,13 +101,13 @@ for (const adapter of Object.values(sourceAdapters)) {
 dbg("all sources parsed", t0);
 
 const tCost = Date.now();
-const costed = costRecords(records, { autoModel: options.autoModel });
+const costed = costRecords(records, { autoModel });
 dbg("costRecords", tCost);
 
 const tSummary = Date.now();
 const summary = buildSummary({
   periodDays,
-  autoModel: options.autoModel,
+  autoModel,
   findings,
   records: costed,
   toolFindings,

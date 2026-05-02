@@ -279,8 +279,9 @@ function renderWarnings(summary: Summary): string {
 }
 
 function renderAutoModelNote(summary: Summary): string {
-  if (!summary.autoModel) return "";
-  return `<section class="warning-banner"><span class="warn-icon" aria-hidden="true">ℹ️</span><div class="warn-content"><p class="warn-title">Auto model remapped</p><p class="warn-item">Records reported as <strong>auto</strong> have been counted as <strong>${escapeHtml(summary.autoModel)}</strong> for cost estimation.</p></div></section>`;
+  if (!summary.autoModel || !summary.autoModelAppliedCount) return "";
+  const count = summary.autoModelAppliedCount.toLocaleString();
+  return `<section class="warning-banner"><span class="warn-icon" aria-hidden="true">ℹ️</span><div class="warn-content"><p class="warn-title">Auto model remapped</p><p class="warn-item">${count} records reported as <strong>auto</strong> have been counted as <strong>${escapeHtml(summary.autoModel)}</strong> for cost estimation.</p></div></section>`;
 }
 
 export function renderHtml(summary: Summary): string {

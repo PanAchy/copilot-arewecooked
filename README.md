@@ -73,7 +73,7 @@ npm run generate -- --html report.html
 npm run generate -- --json
 ```
 
-> **Note on `auto` model:** Some tools (e.g. VS Code Copilot) may report the model as `auto` when the user has not selected a specific model. Credits for those requests will show as zero unless you specify `--auto-model` to map them to a known priced model. The HTML report will include a note indicating the remapping when this flag is used.
+> **Note on `auto` model:** Some tools (e.g. VS Code Copilot) may report the model as `auto` when the user has not selected a specific model. Credits for those requests will show as zero unless you specify `--auto-model` to map them to a known priced model. The HTML report will include a note when any `auto` records are remapped.
 
 ## How data is extracted
 
