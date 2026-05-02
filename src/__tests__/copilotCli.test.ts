@@ -73,6 +73,71 @@ describe("parseCopilotCli", () => {
     expect(finding.notes.join("\n")).toContain("exact session.shutdown");
   });
 
+  it("does not double count assistant messages or compactions when shutdown metrics exist", () => {
+    writeEvents("s1", [
+      {
+        type: "session.start",
+        data: { sessionId: "s1" },
+        id: "start",
+        timestamp: "2026-05-01T00:00:00.000Z",
+      },
+      {
+        type: "assistant.message",
+        data: { messageId: "m1", outputTokens: 1000 },
+        id: "msg-1",
+        timestamp: "2026-05-01T00:00:01.000Z",
+      },
+      {
+        type: "session.compaction_complete",
+        data: {
+          compactionTokensUsed: {
+            input: 2000,
+            output: 300,
+            cachedInput: 400,
+          },
+        },
+        id: "compact",
+        timestamp: "2026-05-01T00:00:02.000Z",
+      },
+      {
+        type: "assistant.message",
+        data: { messageId: "m2", outputTokens: 500 },
+        id: "msg-2",
+        timestamp: "2026-05-01T00:00:03.000Z",
+      },
+      {
+        type: "session.shutdown",
+        id: "shutdown",
+        timestamp: "2026-05-01T00:00:04.000Z",
+        data: {
+          modelMetrics: {
+            "gpt-5-mini": {
+              requests: { count: 2, cost: 1 },
+              usage: {
+                inputTokens: 100,
+                outputTokens: 20,
+                cacheReadTokens: 10,
+                cacheWriteTokens: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    const { records } = parseCopilotCli(tmpBase);
+
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      mode: "session.shutdown",
+      inputTokens: 100,
+      outputTokens: 20,
+      cacheReadTokens: 10,
+      calls: 2,
+      isCompaction: false,
+    });
+  });
+
   it("falls back to unknown model when model data is missing", () => {
     writeEvents("s1", [
       {
