@@ -32,5 +32,6 @@ jobs:
       - name: Dispatch publish workflow
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: gh workflow run publish.yml --ref main -f tag="$TAG"

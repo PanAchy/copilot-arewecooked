@@ -20,7 +20,8 @@
     "check": "npm run build && node dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:css": "node scripts/build-report-css.mjs"
+    "build:css": "node scripts/build-report-css.mjs",
+    "preview:readme": "node scripts/generate-report-preview.mjs"
   },
   "keywords": [
     "github-copilot",

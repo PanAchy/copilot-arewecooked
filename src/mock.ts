@@ -54,8 +54,9 @@ function generateYearOfData(): UsageRecord[] {
 
       // Bigger models = more tokens
       const isBigModel = model.includes("opus") || model.includes("gpt-5.4");
-      const inputMult = isBigModel ? 3 : 1;
-      const outputMult = isBigModel ? 4 : 1;
+      const previewScale = 2.3;
+      const inputMult = (isBigModel ? 3 : 1) * previewScale;
+      const outputMult = (isBigModel ? 4 : 1) * previewScale;
 
       const ts = new Date(d);
       ts.setHours(Math.floor(rand(8, 22)), Math.floor(rand(0, 60)));
@@ -72,7 +73,7 @@ function generateYearOfData(): UsageRecord[] {
         inputTokens: Math.floor(rand(800, 5000) * inputMult * rampFactor),
         outputTokens: Math.floor(rand(200, 2000) * outputMult * rampFactor),
         cacheReadTokens: Math.floor(rand(0, 4000) * inputMult * rampFactor),
-        cacheWriteTokens: Math.floor(rand(0, 500) * rampFactor),
+        cacheWriteTokens: Math.floor(rand(0, 500) * previewScale * rampFactor),
         calls: 1,
       });
     }
