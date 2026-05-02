@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { bucketTrend } from "../html.js";
+import { bucketTrend, renderHtml } from "../html.js";
+import { buildSummary, costRecords } from "../report.js";
 import type { CostedUsageRecord } from "../types.js";
 
 function rec(
@@ -31,6 +32,65 @@ function midnightLocal(dateStr: string): number {
 // ---------------------------------------------------------------------------
 // bucketTrend — empty / single
 // ---------------------------------------------------------------------------
+
+describe("renderHtml", () => {
+  it("shows escaped auto-model note only when remapping was applied", () => {
+    const records = costRecords(
+      [
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "auto",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+      ],
+      { autoModel: "<gpt-5.3-codex>" }
+    );
+    const summary = buildSummary({
+      autoModel: "<gpt-5.3-codex>",
+      findings: [],
+      records,
+      toolFindings: [],
+    });
+
+    const html = renderHtml(summary);
+
+    expect(html).toContain("Auto model remapped");
+    expect(html).toContain("1 records reported as");
+    expect(html).toContain("&lt;gpt-5.3-codex&gt;");
+    expect(html).not.toContain("<gpt-5.3-codex>");
+  });
+
+  it("does not show auto-model note when no auto records were remapped", () => {
+    const records = costRecords(
+      [
+        {
+          source: "vscode",
+          sourcePath: "/mock",
+          provider: "github-copilot",
+          model: "gpt-5-mini",
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+      ],
+      { autoModel: "gpt-5.3-codex" }
+    );
+    const summary = buildSummary({
+      autoModel: "gpt-5.3-codex",
+      findings: [],
+      records,
+      toolFindings: [],
+    });
+
+    expect(renderHtml(summary)).not.toContain("Auto model remapped");
+  });
+});
 
 describe("bucketTrend", () => {
   it("returns empty array for no records", () => {
