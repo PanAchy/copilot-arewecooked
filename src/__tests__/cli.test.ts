@@ -95,7 +95,51 @@ describe("CLI — end-to-end fixture parsing", () => {
   });
 });
 
-describe("CLI — --since and --days mutual exclusion", () => {
+describe("CLI — terminal report", () => {
+  it("prints a compact report without writing HTML/PNG", () => {
+    const home = makeTempHome();
+    writeCopilotCliEvents(home, "s1", [
+      {
+        type: "session.start",
+        data: { sessionId: "s1" },
+        id: "start",
+        timestamp: "2026-05-01T00:00:00.000Z",
+      },
+      {
+        type: "session.shutdown",
+        id: "shutdown",
+        timestamp: "2026-05-01T00:00:02.000Z",
+        data: {
+          modelMetrics: {
+            "gpt-5-mini": {
+              requests: { count: 1, cost: 1 },
+              usage: {
+                inputTokens: 1_000_000,
+                outputTokens: 0,
+                cacheReadTokens: 0,
+                cacheWriteTokens: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    const result = spawnSync(tsx, [cliPath, "--terminal"], {
+      encoding: "utf8",
+      timeout: 15_000,
+      env: { ...process.env, HOME: home },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("copilot-arewecooked");
+    expect(result.stdout).toContain("Estimated cost: 25 AI credits");
+    expect(result.stdout).not.toContain("HTML report written");
+    expect(result.stdout).not.toContain("PNG screenshot written");
+  });
+});
+
+describe("CLI — mutual exclusion", () => {
   it("exits with code 1 when both --since and --days are provided", () => {
     const result = spawnSync(
       tsx,
@@ -112,5 +156,31 @@ describe("CLI — --since and --days mutual exclusion", () => {
       { encoding: "utf8", timeout: 15_000 }
     );
     expect(result.stderr).toContain("mutually exclusive");
+  });
+
+  it("exits with code 1 when --json and --terminal are provided", () => {
+    const result = spawnSync(tsx, [cliPath, "--json", "--terminal"], {
+      encoding: "utf8",
+      timeout: 15_000,
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "--json and --terminal are mutually exclusive"
+    );
+  });
+
+  it("exits with code 1 when --html and --terminal are provided", () => {
+    const result = spawnSync(
+      tsx,
+      [cliPath, "--html", "report.html", "--terminal"],
+      {
+        encoding: "utf8",
+        timeout: 15_000,
+      }
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "--html and --terminal are mutually exclusive"
+    );
   });
 });
