@@ -4,7 +4,7 @@ import type {
   Summary,
   ToolFinding,
 } from "./types.js";
-import { comparePlans, costRecord } from "./pricing.js";
+import { comparePlans, costRecord, normalizeModel } from "./pricing.js";
 import { renderTable } from "./table.js";
 import { DISPLAY_NAMES } from "./utils.js";
 
@@ -53,6 +53,15 @@ export function buildSummary(args: {
   totals.sessions = sessions.size;
   totals.userPromptParents = parents.size;
 
+  const autoModel = args.autoModel?.trim();
+  const autoModelAppliedCount = autoModel
+    ? args.records.filter(
+        (record) =>
+          normalizeModel(record.model) === "auto" &&
+          record.pricingModel !== "auto"
+      ).length
+    : 0;
+
   const byModel: Summary["byModel"] = {};
   for (const record of args.records) {
     const key = record.pricingModel ?? record.model;
@@ -73,7 +82,8 @@ export function buildSummary(args: {
   return {
     generatedAt: new Date().toISOString(),
     periodDays: args.periodDays,
-    autoModel: args.autoModel,
+    autoModel,
+    autoModelAppliedCount,
     sources: args.findings,
     records: args.records,
     toolFindings: args.toolFindings,
@@ -87,10 +97,11 @@ export function costRecords(
   records: Parameters<typeof costRecord>[0][],
   options?: { autoModel?: string }
 ): CostedUsageRecord[] {
-  const autoModel = options?.autoModel;
+  const autoModel = options?.autoModel?.trim();
   return records.map((record) => {
-    if (autoModel && record.model.toLowerCase().trim() === "auto") {
-      return costRecord({ ...record, model: autoModel });
+    if (autoModel && normalizeModel(record.model) === "auto") {
+      const costed = costRecord({ ...record, model: autoModel });
+      return { ...costed, model: record.model };
     }
     return costRecord(record);
   });

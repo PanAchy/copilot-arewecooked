@@ -67,6 +67,7 @@ export interface Summary {
   generatedAt: string;
   periodDays?: number;
   autoModel?: string;
+  autoModelAppliedCount?: number;
   sources: SourceFinding[];
   records: CostedUsageRecord[];
   toolFindings: ToolFinding[];
