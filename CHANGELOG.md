@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.6.0...v0.6.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **cli:** show model breakdown in terminal report ([73438cd](https://github.com/PanAchy/copilot-arewecooked/commit/73438cd150908cd52d308a3db56a98e2ed689e26))
+* **release:** dispatch publish after release ([853ff6a](https://github.com/PanAchy/copilot-arewecooked/commit/853ff6a2289efc0e8f8477062ac64be1819016e4))
+
 ## [0.6.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.5.0...v0.6.0) (2026-05-02)
 
 
