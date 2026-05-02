@@ -133,7 +133,9 @@ describe("CLI — terminal report", () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("copilot-arewecooked");
-    expect(result.stdout).toContain("Estimated cost: 25 AI credits");
+    expect(result.stdout).toContain("Monthly average: 25 AI credits");
+    expect(result.stdout).toContain("Model usage and cost");
+    expect(result.stdout).toContain("gpt-5-mini");
     expect(result.stdout).not.toContain("HTML report written");
     expect(result.stdout).not.toContain("PNG screenshot written");
   });

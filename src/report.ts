@@ -71,12 +71,14 @@ export function buildSummary(args: {
       inputTokens: 0,
       outputTokens: 0,
       cacheReadTokens: 0,
+      cacheWriteTokens: 0,
     };
     byModel[key].calls += record.calls ?? 1;
     byModel[key].credits += record.credits;
     byModel[key].inputTokens += record.inputTokens;
     byModel[key].outputTokens += record.outputTokens;
     byModel[key].cacheReadTokens += record.cacheReadTokens;
+    byModel[key].cacheWriteTokens += record.cacheWriteTokens;
   }
 
   return {
@@ -115,6 +117,58 @@ function fmtCredits(n: number): string {
   return fmt(n, n < 10 ? 3 : 1);
 }
 
+function sectionTitle(title: string): string {
+  return `━━ ${title} ${"━".repeat(Math.max(0, 72 - title.length))}`;
+}
+
+function recordTimestamp(record: CostedUsageRecord): number | undefined {
+  if (record.timestamp == null) return undefined;
+  const ts =
+    typeof record.timestamp === "number"
+      ? record.timestamp
+      : Date.parse(record.timestamp);
+  return Number.isFinite(ts) ? ts : undefined;
+}
+
+function comparisonMetric(summary: Summary): {
+  label: string;
+  credits: number;
+} {
+  const days = summary.periodDays;
+  if (days != null && days < 28) {
+    return {
+      label: "30-day projection",
+      credits: (summary.totals.credits / days) * 30,
+    };
+  }
+  if (days != null && days <= 45) {
+    return { label: "Period credits", credits: summary.totals.credits };
+  }
+
+  const timestamps = summary.records
+    .map(recordTimestamp)
+    .filter((ts): ts is number => ts != null);
+  let months = 1;
+  if (timestamps.length > 0) {
+    const first = new Date(Math.min(...timestamps));
+    const last = new Date(Math.max(...timestamps));
+    months = Math.max(
+      1,
+      (last.getFullYear() - first.getFullYear()) * 12 +
+        last.getMonth() -
+        first.getMonth() +
+        1
+    );
+  } else if (days != null) {
+    months = Math.max(1, days / 30);
+  }
+
+  return {
+    label: "Monthly average",
+    credits: summary.totals.credits / months,
+  };
+}
+
 function sourceRows(summary: Summary) {
   return summary.sources
     .map((source) => {
@@ -151,8 +205,10 @@ export function renderConsole(summary: Summary): string {
       ? `Period: last ${summary.periodDays}d`
       : "Period: all available data"
   );
+  const comparison = comparisonMetric(summary);
+
   lines.push("");
-  lines.push("Sources");
+  lines.push(sectionTitle("Sources"));
   const sources = sourceRows(summary);
   if (sources.length > 0) {
     lines.push(
@@ -176,27 +232,15 @@ export function renderConsole(summary: Summary): string {
   }
 
   lines.push("");
-  lines.push("Tokens");
   lines.push(
-    ...renderTable(
-      [
-        { kind: "Input", value: summary.totals.inputTokens },
-        { kind: "Output", value: summary.totals.outputTokens },
-        { kind: "Cache read", value: summary.totals.cacheReadTokens },
-        { kind: "Cache write", value: summary.totals.cacheWriteTokens },
-      ],
-      [
-        { header: "Type", value: (row) => row.kind },
-        { header: "Tokens", value: (row) => fmt(row.value, 0), align: "right" },
-      ]
+    sectionTitle(
+      `Included credit comparison (${comparison.label.toLowerCase()})`
     )
   );
-
   lines.push(
-    `Estimated cost: ${fmtCredits(summary.totals.credits)} AI credits | $${fmt(summary.totals.usd, 4)}`
+    `${comparison.label}: ${fmtCredits(comparison.credits)} AI credits ($${fmt(comparison.credits / 100, 4)})`
   );
-  lines.push("");
-  const relevantPlans = summary.plans.filter((plan) =>
+  const relevantPlans = comparePlans(comparison.credits).filter((plan) =>
     ["pro", "pro+", "business", "enterprise"].includes(plan.plan)
   );
   lines.push(
@@ -229,5 +273,76 @@ export function renderConsole(summary: Summary): string {
       },
     ])
   );
+
+  lines.push("");
+  lines.push(sectionTitle("Model usage and cost (total)"));
+  const modelRows = Object.entries(summary.byModel)
+    .map(([model, data]) => ({ model, ...data, isTotal: false }))
+    .sort((a, b) => b.credits - a.credits);
+  const totalModelRow = {
+    model: "Total",
+    calls: summary.totals.calls,
+    inputTokens: summary.totals.inputTokens,
+    cacheReadTokens: summary.totals.cacheReadTokens,
+    cacheWriteTokens: summary.totals.cacheWriteTokens,
+    outputTokens: summary.totals.outputTokens,
+    credits: summary.totals.credits,
+    isTotal: true,
+  };
+  if (modelRows.length > 0) {
+    lines.push(
+      ...renderTable(
+        [...modelRows, totalModelRow],
+        [
+          { header: "Model", value: (row) => row.model || "unknown" },
+          {
+            header: "Calls",
+            value: (row) => fmt(row.calls, 0),
+            align: "right",
+          },
+          {
+            header: "Input",
+            value: (row) => fmt(row.inputTokens, 0),
+            align: "right",
+          },
+          {
+            header: "Cache read",
+            value: (row) => fmt(row.cacheReadTokens, 0),
+            align: "right",
+          },
+          {
+            header: "Cache write",
+            value: (row) => fmt(row.cacheWriteTokens, 0),
+            align: "right",
+          },
+          {
+            header: "Output",
+            value: (row) => fmt(row.outputTokens, 0),
+            align: "right",
+          },
+          {
+            header: "Credits",
+            value: (row) => fmtCredits(row.credits),
+            align: "right",
+          },
+          {
+            header: "Share",
+            value: (row) => {
+              if (row.isTotal) return "100%";
+              const share =
+                summary.totals.credits > 0
+                  ? (row.credits / summary.totals.credits) * 100
+                  : 0;
+              return `${fmt(share, 1)}%`;
+            },
+            align: "right",
+          },
+        ]
+      )
+    );
+  } else {
+    lines.push("No priced model usage found.");
+  }
+
   return lines.join("\n");
 }
