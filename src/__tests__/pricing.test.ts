@@ -126,6 +126,22 @@ describe("model aliases", () => {
     expect(result.pricingKnown).toBe(true);
   });
 
+  it("prices OSWE VS Code Prime as Raptor mini", () => {
+    const record: UsageRecord = {
+      source: "vscode",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "oswe-vscode-prime",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    };
+    const result = costRecord(record);
+    expect(result.pricingModel).toBe("raptor-mini");
+    expect(result.pricingKnown).toBe(true);
+  });
+
   it("prices Goldeneye with its direct published rate", () => {
     const record: UsageRecord = {
       source: "opencode",
