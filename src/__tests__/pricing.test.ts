@@ -138,7 +138,7 @@ describe("model aliases", () => {
       cacheWriteTokens: 0,
     };
     const result = costRecord(record);
-    expect(result.pricingModel).toBe("raptor-mini");
+    expect(result.pricingModel).toBe("gpt-5-mini");
     expect(result.pricingKnown).toBe(true);
   });
 
