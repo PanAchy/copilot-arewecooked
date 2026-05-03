@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.7.0...v0.7.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **pricing:** price OSWE VS Code Prime as Raptor mini ([8e045c3](https://github.com/PanAchy/copilot-arewecooked/commit/8e045c35da3258818fcea5a3867b42892e317636))
+
 ## [0.7.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.6.1...v0.7.0) (2026-05-02)
 
 
