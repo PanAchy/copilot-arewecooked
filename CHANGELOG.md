@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.7.1...v0.8.0) (2026-05-04)
+
+
+### Features
+
+* add Copilot for Xcode source adapter ([a3ef6a6](https://github.com/PanAchy/copilot-arewecooked/commit/a3ef6a6798ff5d43a65067c78fede87cf88815b9))
+* add Copilot for Xcode source adapter ([c556575](https://github.com/PanAchy/copilot-arewecooked/commit/c556575b1af4deb42ae3b164f12ae650764c669a))
+
 ## [0.7.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.7.0...v0.7.1) (2026-05-03)
 
 
