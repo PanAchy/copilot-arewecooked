@@ -11,6 +11,7 @@ export const DISPLAY_NAMES: Record<string, string> = {
   opencode: "OpenCode",
   pi: "Pi",
   "copilot-cli": "Copilot CLI",
+  xcode: "Copilot for Xcode",
 };
 
 export function* readLinesFromFile(filePath: string): Generator<string> {
