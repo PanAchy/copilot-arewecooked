@@ -8,6 +8,7 @@ const SOURCE_ORDER = [
   "opencode",
   "pi",
   "copilot-cli",
+  "xcode",
 ];
 const SOURCE_COLORS = [
   "var(--color-report-blue)",

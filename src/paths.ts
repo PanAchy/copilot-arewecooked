@@ -44,6 +44,12 @@ export function vscodeStoragePaths(): string[] {
   ]);
 }
 
+export function xcodeLogPaths(): string[] {
+  return compact([
+    isMac ? join(home, "Library/Logs/GitHubCopilot") : undefined,
+  ]);
+}
+
 export function vscodeInsidersStoragePaths(): string[] {
   return compact([
     isMac

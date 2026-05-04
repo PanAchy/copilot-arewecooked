@@ -3,7 +3,8 @@ export type SourceKind =
   | "pi"
   | "copilot-cli"
   | "vscode"
-  | "vscode-insiders";
+  | "vscode-insiders"
+  | "xcode";
 
 export interface UsageRecord {
   source: SourceKind;
