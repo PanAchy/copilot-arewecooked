@@ -8,6 +8,7 @@ import {
   parseVsCode,
   parseVsCodeInsiders,
 } from "./vscode.js";
+import { defaultXcodeLogPaths, parseXcode } from "./xcode.js";
 
 export const sourceAdapters = {
   vscode: {
@@ -34,5 +35,10 @@ export const sourceAdapters = {
     kind: "copilot-cli",
     defaultPaths: defaultCopilotCliStatePaths,
     parse: parseCopilotCli,
+  },
+  xcode: {
+    kind: "xcode",
+    defaultPaths: defaultXcodeLogPaths,
+    parse: parseXcode,
   },
 } satisfies Record<string, SourceAdapter>;
