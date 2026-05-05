@@ -96,13 +96,21 @@ export function normalizeModel(model: string): string {
   return model
     .toLowerCase()
     .replace(/^github-copilot\//, "")
+    .replace(/\s*\((preview)\)\s*/g, "-$1")
     .replace(/_/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
     .trim();
 }
 
 function resolveModel(model: string): string {
   const normalized = normalizeModel(model);
   if (MODEL_PRICES[normalized]) return normalized;
+  if (normalized.endsWith("-preview")) {
+    const stable = normalized.slice(0, -"-preview".length);
+    if (MODEL_PRICES[stable]) return stable;
+  }
   const alias = MODEL_ALIASES[normalized];
   if (alias) return alias;
   return normalized;
