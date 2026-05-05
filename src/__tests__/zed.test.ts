@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import Database from "better-sqlite3";
-import { compress as zstdCompress } from "zstdify";
+import zlib from "node:zlib";
 import { parseZed } from "../zed.js";
 
 let tmpDir: string;
@@ -41,7 +41,9 @@ function insertThread(
     dataType?: "json" | "zstd";
     provider?: string;
     model?: string;
-    cumulativeTokenUsage?: Record<string, number> | Array<Record<string, number>>;
+    cumulativeTokenUsage?:
+      | Record<string, number>
+      | Array<Record<string, number>>;
     requestTokenUsage?: Record<string, Record<string, number>>;
     profileName?: string;
   }
@@ -67,9 +69,7 @@ function insertThread(
 
   const json = Buffer.from(JSON.stringify(payload), "utf8");
   const data =
-    (args.dataType ?? "zstd") === "json"
-      ? json
-      : Buffer.from(zstdCompress(json));
+    (args.dataType ?? "zstd") === "json" ? json : zlib.zstdCompressSync(json);
 
   db.prepare(
     `INSERT INTO threads (id, updated_at, created_at, data_type, data)
@@ -196,7 +196,10 @@ describe("parseZed", () => {
     insertThread(db, { id: "new", updatedAt: "2026-05-10T00:00:00.000Z" });
     db.close();
 
-    const { records } = parseZed(dbPath, Date.parse("2026-05-05T00:00:00.000Z"));
+    const { records } = parseZed(
+      dbPath,
+      Date.parse("2026-05-05T00:00:00.000Z")
+    );
     expect(records).toHaveLength(1);
     expect(records[0]!.sessionId).toBe("new");
   });
@@ -212,7 +215,9 @@ describe("parseZed", () => {
 
     const { finding, records } = parseZed(dbPath);
     expect(records).toHaveLength(0);
-    expect(finding.notes).toContain("No github-copilot provider records found.");
+    expect(finding.notes).toContain(
+      "No github-copilot provider records found."
+    );
   });
 
   it("reports decode failures without aborting the parse", () => {
@@ -232,6 +237,8 @@ describe("parseZed", () => {
 
     const { finding, records } = parseZed(dbPath);
     expect(records).toHaveLength(1);
-    expect(finding.notes.some((note) => note.includes("bad-thread"))).toBe(true);
+    expect(finding.notes.some((note) => note.includes("bad-thread"))).toBe(
+      true
+    );
   });
 });

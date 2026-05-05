@@ -1,7 +1,6 @@
 import Database from "better-sqlite3";
 import { existsSync } from "node:fs";
 import zlib from "node:zlib";
-import { decompress as zstdDecompress } from "zstdify";
 import { zedDbPaths } from "./paths.js";
 import type { SourceFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
@@ -22,12 +21,6 @@ type TokenUsage = {
 };
 
 type JsonObject = Record<string, unknown>;
-
-type ZstdCapableZlib = typeof zlib & {
-  zstdDecompressSync?: (buffer: Buffer) => Buffer;
-};
-
-const zstdZlib = zlib as ZstdCapableZlib;
 
 export function defaultZedDbPaths(): string[] {
   return zedDbPaths();
@@ -66,10 +59,7 @@ function asNumber(value: unknown): number {
 }
 
 function decodeZstd(data: Buffer): Buffer {
-  if (typeof zstdZlib.zstdDecompressSync === "function") {
-    return zstdZlib.zstdDecompressSync(data);
-  }
-  return Buffer.from(zstdDecompress(data));
+  return zlib.zstdDecompressSync(data);
 }
 
 function decodeThreadPayload(row: ThreadRow): JsonObject {
@@ -219,7 +209,8 @@ function extractRequestTokenUsage(payload: JsonObject): TokenUsage {
 function extractCalls(payload: JsonObject): number {
   const requestUsage = payload.request_token_usage ?? payload.requestTokenUsage;
   if (Array.isArray(requestUsage)) return requestUsage.length || 1;
-  if (isObject(requestUsage)) return Math.max(1, Object.keys(requestUsage).length);
+  if (isObject(requestUsage))
+    return Math.max(1, Object.keys(requestUsage).length);
   return 1;
 }
 
@@ -280,7 +271,9 @@ export function parseZed(
         const model = extractModel(payload);
         if (!isCopilotProvider(provider, model)) continue;
 
-        const cumulativeUsage = extractTokenUsage(payload.cumulative_token_usage);
+        const cumulativeUsage = extractTokenUsage(
+          payload.cumulative_token_usage
+        );
         const requestUsage = extractRequestTokenUsage(payload);
         const usage = isNonZeroTokenUsage(cumulativeUsage)
           ? cumulativeUsage
@@ -289,7 +282,9 @@ export function parseZed(
           source: "zed",
           sourcePath: path,
           sessionId: row.id,
-          timestamp: parseTimestamp(row.updated_at ?? row.created_at ?? undefined),
+          timestamp: parseTimestamp(
+            row.updated_at ?? row.created_at ?? undefined
+          ),
           provider: provider ?? "github-copilot",
           model: (model ?? "unknown").replace(/^github-copilot\//, ""),
           inputTokens: usage.inputTokens,
