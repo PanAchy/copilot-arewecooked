@@ -2,6 +2,7 @@ import { defaultCopilotCliStatePaths, parseCopilotCli } from "./copilotCli.js";
 import { defaultOpenCodeDbPaths, parseOpenCode } from "./opencode.js";
 import { defaultPiSessionsPaths, parsePi } from "./pi.js";
 import type { SourceAdapter } from "./source.js";
+import { defaultZedDbPaths, parseZed } from "./zed.js";
 import {
   defaultVsCodeWorkspaceStoragePaths,
   defaultVsCodeInsidersWorkspaceStoragePaths,
@@ -30,6 +31,11 @@ export const sourceAdapters = {
     kind: "pi",
     defaultPaths: defaultPiSessionsPaths,
     parse: parsePi,
+  },
+  zed: {
+    kind: "zed",
+    defaultPaths: defaultZedDbPaths,
+    parse: parseZed,
   },
   copilotCli: {
     kind: "copilot-cli",

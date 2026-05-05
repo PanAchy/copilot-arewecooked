@@ -44,7 +44,8 @@
     "better-sqlite3": "^12.5.0",
     "commander": "^14.0.2",
     "fast-glob": "^3.3.3",
-    "puppeteer": "^24.42.0"
+    "puppeteer": "^24.42.0",
+    "zstdify": "^1.4.0"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.4",
