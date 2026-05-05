@@ -25,7 +25,12 @@ export function opencodeDbPaths(): string[] {
 }
 
 export function zedDbPaths(): string[] {
-  return compact([join(home, ".local/share/zed/threads/threads.db")]);
+  return compact([
+    isMac
+      ? join(home, "Library/Application Support/Zed/threads/threads.db")
+      : undefined,
+    join(home, ".local/share/zed/threads/threads.db"),
+  ]);
 }
 
 export function piSessionsPaths(): string[] {
