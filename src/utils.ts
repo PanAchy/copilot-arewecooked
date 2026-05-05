@@ -10,6 +10,7 @@ export const DISPLAY_NAMES: Record<string, string> = {
   "vscode-insiders": "VS Code Insiders",
   opencode: "OpenCode",
   pi: "Pi",
+  zed: "Zed",
   "copilot-cli": "Copilot CLI",
   xcode: "Copilot for Xcode",
 };

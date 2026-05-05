@@ -8,7 +8,7 @@
 </div>
 
 Estimate your GitHub Copilot AI-credit cost in preparation for June 1st.
-Pulls usage from VS Code, OpenCode, Pi, GitHub Copilot CLI, and Copilot for Xcode, aggregates it based on the new per-token pricing, and generates a local HTML report. **Fully local**.
+Pulls usage from VS Code, OpenCode, Pi, Zed, GitHub Copilot CLI, and Copilot for Xcode, aggregates it based on the new per-token pricing, and generates a local HTML report. **Fully local**.
 
 ![HTML report preview](./docs/assets/report-preview.png)
 
@@ -82,5 +82,6 @@ npm run generate -- --json
 | **VS Code**           | `~/Library/Application Support/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (macOS) · `%APPDATA%/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Windows) · `~/.config/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Linux) | Input estimated, output exact, cache not persisted                     |
 | **OpenCode**          | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                                                          | All exact (input, output, cache read/write)                            |
 | **Pi**                | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                                                                     | All exact (input, output, cache read/write)                            |
+| **Zed**               | `~/.local/share/zed/threads/threads.db` (falls back to `thread.db` if present)                                                                                                                                                                                                       | All exact (input, output, cache read/write)                            |
 | **Copilot CLI**       | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                                                             | Output exact, input estimated, compaction exact                        |
 | **Copilot for Xcode** | `~/Library/Logs/GitHubCopilot/*.log` (macOS only)                                                                                                                                                                                                                                     | All exact (input, output, cache read); model attribution via heuristic |

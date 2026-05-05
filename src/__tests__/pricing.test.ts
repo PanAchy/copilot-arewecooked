@@ -37,6 +37,16 @@ describe("normalizeModel", () => {
   it("handles already-normalized names", () => {
     expect(normalizeModel("gpt-5-mini")).toBe("gpt-5-mini");
   });
+
+  it("normalizes spaced model names", () => {
+    expect(normalizeModel("Claude Opus 4.5")).toBe("claude-opus-4.5");
+    expect(normalizeModel("GPT-5 mini")).toBe("gpt-5-mini");
+  });
+
+  it("normalizes preview display names", () => {
+    expect(normalizeModel("GPT-5 (Preview)")).toBe("gpt-5-preview");
+    expect(normalizeModel("o4-mini (Preview)")).toBe("o4-mini-preview");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -140,6 +150,88 @@ describe("model aliases", () => {
     const result = costRecord(record);
     expect(result.pricingModel).toBe("raptor-mini");
     expect(result.pricingKnown).toBe(true);
+  });
+
+  it("keeps unmatched GPT-5 display names unknown", () => {
+    const rawModels = ["gpt-5", "GPT-5 (Preview)"];
+
+    for (const model of rawModels) {
+      const result = costRecord({
+        source: "zed",
+        sourcePath: "/mock",
+        provider: "github-copilot",
+        model,
+        inputTokens: 1_000_000,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      });
+
+      expect(result.pricingKnown).toBe(false);
+    }
+  });
+
+  it("keeps unmatched o-series mini display names unknown", () => {
+    const rawModels = ["o3-mini", "o4-mini", "o4-mini (Preview)"];
+
+    for (const model of rawModels) {
+      const result = costRecord({
+        source: "zed",
+        sourcePath: "/mock",
+        provider: "github-copilot",
+        model,
+        inputTokens: 1_000_000,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      });
+
+      expect(result.pricingKnown).toBe(false);
+    }
+  });
+
+  it("prices Claude display names after normalization", () => {
+    const expectations = [
+      ["Claude Sonnet 4", "claude-sonnet-4"],
+      ["Claude Sonnet 4.5", "claude-sonnet-4.5"],
+      ["Claude Sonnet 4.6", "claude-sonnet-4.6"],
+      ["Claude Opus 4.5", "claude-opus-4.5"],
+      ["Claude Opus 4.5 (Preview)", "claude-opus-4.5"],
+      ["Claude Opus 4.6", "claude-opus-4.6"],
+      ["Claude Haiku 4.5", "claude-haiku-4.5"],
+    ] as const;
+
+    for (const [model, expectedPricingModel] of expectations) {
+      const result = costRecord({
+        source: "zed",
+        sourcePath: "/mock",
+        provider: "github-copilot",
+        model,
+        inputTokens: 1_000_000,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      });
+
+      expect(result.pricingModel).toBe(expectedPricingModel);
+      expect(result.pricingKnown).toBe(true);
+    }
+  });
+
+  it("keeps unmatched Claude 3.7 Sonnet unknown", () => {
+    const result = costRecord({
+      source: "zed",
+      sourcePath: "/mock",
+      provider: "github-copilot",
+      model: "claude-3.7-sonnet",
+      inputTokens: 1_000_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    });
+
+    expect(result.pricingModel).toBe("claude-3.7-sonnet");
+    expect(result.pricingKnown).toBe(false);
   });
 
   it("prices Goldeneye with its direct published rate", () => {
@@ -431,7 +523,13 @@ describe("roughTokens", () => {
 
 describe("DISPLAY_NAMES", () => {
   it("maps all source kinds", () => {
-    const sources: string[] = ["vscode", "opencode", "pi", "copilot-cli"];
+    const sources: string[] = [
+      "vscode",
+      "opencode",
+      "pi",
+      "zed",
+      "copilot-cli",
+    ];
     for (const source of sources) {
       expect(DISPLAY_NAMES[source]).toBeTruthy();
     }

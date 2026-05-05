@@ -16,8 +16,13 @@ const MODELS = [
 ];
 
 const SOURCES: Array<
-  "opencode" | "pi" | "copilot-cli" | "vscode" | "vscode-insiders"
-> = ["opencode", "pi", "copilot-cli", "vscode", "vscode-insiders"];
+  | "opencode"
+  | "pi"
+  | "zed"
+  | "copilot-cli"
+  | "vscode"
+  | "vscode-insiders"
+> = ["opencode", "pi", "zed", "copilot-cli", "vscode", "vscode-insiders"];
 
 let seed = 42;
 
@@ -104,6 +109,13 @@ const summary = buildSummary({
       path: "/mock/pi",
       found: true,
       records: records.filter((r) => r.source === "pi").length,
+      notes: [],
+    },
+    {
+      source: "zed",
+      path: "/mock/zed",
+      found: true,
+      records: records.filter((r) => r.source === "zed").length,
       notes: [],
     },
     {

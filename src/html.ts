@@ -7,6 +7,7 @@ const SOURCE_ORDER = [
   "vscode-insiders",
   "opencode",
   "pi",
+  "zed",
   "copilot-cli",
   "xcode",
 ];
@@ -15,8 +16,8 @@ const SOURCE_COLORS = [
   "var(--color-report-purple)",
   "var(--color-report-green)",
   "var(--color-report-yellow)",
-  "var(--color-report-red)",
   "var(--color-report-cyan)",
+  "var(--color-report-red)",
 ];
 
 const PLAN_GROUPS = [
@@ -252,7 +253,16 @@ function renderSources(summary: Summary): string {
     );
   }
   const sources = [...bySource.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => {
+      const aIndex = SOURCE_ORDER.indexOf(a[0]);
+      const bIndex = SOURCE_ORDER.indexOf(b[0]);
+      if (aIndex !== -1 || bIndex !== -1) {
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      }
+      return a[0].localeCompare(b[0]);
+    })
     .filter(([, credits]) => credits > 0);
   const total = sources.reduce((sum, [, credits]) => sum + credits, 0);
   if (total <= 0 || sources.length === 0) {

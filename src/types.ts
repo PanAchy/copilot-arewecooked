@@ -2,6 +2,7 @@ export type SourceKind =
   | "opencode"
   | "pi"
   | "copilot-cli"
+  | "zed"
   | "vscode"
   | "vscode-insiders"
   | "xcode";
