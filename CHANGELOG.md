@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.8.0...v0.9.0) (2026-05-05)
+
+
+### Features
+
+* add zed support ([6e88f00](https://github.com/PanAchy/copilot-arewecooked/commit/6e88f006185254220b35192c8e091f1f47180a26))
+* add zed support ([11c8300](https://github.com/PanAchy/copilot-arewecooked/commit/11c83006da06b508c2eada72065fa3be1ac27a34))
+
+
+### Bug Fixes
+
+* add macOS path for Zed threads database ([bae664e](https://github.com/PanAchy/copilot-arewecooked/commit/bae664e5549777d45757ca1f956f5fbf200bdd11))
+* remove zstdify dependency in favour of native zlib ([2354665](https://github.com/PanAchy/copilot-arewecooked/commit/235466535f530a56c66df50ccaeeaeb99ef29d15))
+* **zed:** add macOS db path and remove zstdify dependency ([6ee4c50](https://github.com/PanAchy/copilot-arewecooked/commit/6ee4c503ec3d0b7c31642a0672b5e359f328976a))
+
 ## [0.8.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.7.1...v0.8.0) (2026-05-04)
 
 
