@@ -110,8 +110,8 @@ for (const adapter of Object.values(sourceAdapters)) {
       tAdapter
     );
     findings.push(result.finding);
-    records.push(...result.records);
-    toolFindings.push(...(result.toolFindings ?? []));
+    for (const record of result.records) records.push(record);
+    for (const finding of result.toolFindings ?? []) toolFindings.push(finding);
   }
 }
 dbg("all sources parsed", t0);

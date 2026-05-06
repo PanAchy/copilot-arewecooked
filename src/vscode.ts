@@ -189,7 +189,7 @@ function parseVsCodeVariant(
       });
       if (shutdownRecords.length === 0) continue;
       fileHadShutdown = true;
-      records.push(...shutdownRecords);
+      for (const record of shutdownRecords) records.push(record);
     }
     if (fileHadShutdown) {
       exactTranscriptSessions += 1;

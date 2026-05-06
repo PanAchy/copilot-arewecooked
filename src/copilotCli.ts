@@ -39,7 +39,7 @@ export function parseCopilotCli(
   let fallbackSessions = 0;
   for (const file of files) {
     const result = parseCopilotCliSession(file, sinceMs);
-    records.push(...result.records);
+    for (const record of result.records) records.push(record);
     if (result.kind === "shutdown") shutdownSessions += 1;
     if (result.kind === "fallback") fallbackSessions += 1;
   }

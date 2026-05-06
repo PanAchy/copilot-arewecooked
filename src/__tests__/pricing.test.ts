@@ -64,6 +64,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("gpt-5.2");
@@ -82,6 +83,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("gpt-5.2-codex");
@@ -98,6 +100,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("gpt-4.1");
@@ -114,6 +117,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("gpt-5-mini");
@@ -130,6 +134,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("gemini-3.1-pro");
@@ -146,6 +151,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("raptor-mini");
@@ -165,6 +171,7 @@ describe("model aliases", () => {
         outputTokens: 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       });
 
       expect(result.pricingKnown).toBe(false);
@@ -184,6 +191,7 @@ describe("model aliases", () => {
         outputTokens: 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       });
 
       expect(result.pricingKnown).toBe(false);
@@ -211,6 +219,7 @@ describe("model aliases", () => {
         outputTokens: 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       });
 
       expect(result.pricingModel).toBe(expectedPricingModel);
@@ -228,6 +237,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     });
 
     expect(result.pricingModel).toBe("claude-3.7-sonnet");
@@ -244,6 +254,7 @@ describe("model aliases", () => {
       outputTokens: 1_000_000,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingModel).toBe("goldeneye");
@@ -261,6 +272,7 @@ describe("model aliases", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.pricingKnown).toBe(false);
@@ -285,6 +297,7 @@ describe("costRecord", () => {
     outputTokens: 1_000_000,
     cacheReadTokens: 0,
     cacheWriteTokens: 0,
+    calls: 1,
   };
 
   it("costs known model correctly", () => {
@@ -319,6 +332,7 @@ describe("costRecord", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 1_000_000,
+      calls: 1,
     };
     const result = costRecord(record);
     // claude-sonnet-4.5 cacheWrite: $3.75/M
@@ -333,6 +347,7 @@ describe("costRecord", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 1_000_000,
+      calls: 1,
     };
     const result = costRecord(record);
     // gpt-5-mini has no cacheWrite, falls back to cachedInput $0.025/M
@@ -360,6 +375,7 @@ describe("costRecord", () => {
       outputTokens: 0,
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     expect(result.usd).toBe(0);
@@ -374,6 +390,7 @@ describe("costRecord", () => {
       outputTokens: 0,
       cacheReadTokens: 900_000,
       cacheWriteTokens: 0,
+      calls: 1,
     };
     const result = costRecord(record);
     // claude-opus-4.7: 100k non-cached input * $5/M + 900k cached * $0.50/M = $0.95
@@ -389,6 +406,7 @@ describe("costRecord", () => {
       outputTokens: 200_000,
       cacheReadTokens: 1_000_000,
       cacheWriteTokens: 300_000,
+      calls: 1,
     };
     const rate = MODEL_PRICES["claude-opus-4.7"]!;
     const expected =
@@ -552,6 +570,7 @@ describe("buildSummary", () => {
         outputTokens: 50_000,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
       {
         source: "pi",
@@ -562,6 +581,7 @@ describe("buildSummary", () => {
         outputTokens: 100_000,
         cacheReadTokens: 50_000,
         cacheWriteTokens: 0,
+        calls: 1,
       },
     ]);
     const findings: SourceFinding[] = [
@@ -594,6 +614,7 @@ describe("buildSummary", () => {
         outputTokens: 50_000,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
       {
         source: "pi",
@@ -604,6 +625,7 @@ describe("buildSummary", () => {
         outputTokens: 100_000,
         cacheReadTokens: 50_000,
         cacheWriteTokens: 0,
+        calls: 1,
       },
     ]);
     const summary = buildSummary({
@@ -663,6 +685,7 @@ describe("buildSummary", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
         {
           source: "vscode",
@@ -673,6 +696,7 @@ describe("buildSummary", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
       ],
       { autoModel: "gpt-5.3-codex" }
@@ -702,6 +726,7 @@ describe("buildSummary", () => {
         outputTokens: 100,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
       {
         source: "opencode",
@@ -713,6 +738,7 @@ describe("buildSummary", () => {
         outputTokens: 100,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
       {
         source: "pi",
@@ -724,6 +750,7 @@ describe("buildSummary", () => {
         outputTokens: 100,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
     ]);
     const summary = buildSummary({
@@ -756,6 +783,7 @@ describe("costRecords", () => {
         outputTokens: 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        calls: 1,
       },
     ]);
     expect(results).toHaveLength(1);
@@ -776,6 +804,7 @@ describe("costRecords", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
       ],
       { autoModel: " gpt-5.3-codex " }
@@ -799,6 +828,7 @@ describe("costRecords", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
       ],
       { autoModel: "gpt-5.3-codex" }
