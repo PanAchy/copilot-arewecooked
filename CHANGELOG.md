@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.9.0...v0.9.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* avoid stack overflow on large report datasets ([f3f0af6](https://github.com/PanAchy/copilot-arewecooked/commit/f3f0af6f378b040d2a56e5f280c277cb2fabd87e))
+* avoid stack overflow on large report datasets ([387e386](https://github.com/PanAchy/copilot-arewecooked/commit/387e386d84451547fa4ee5806bcb0fed63fa979d))
+
 ## [0.9.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.8.0...v0.9.0) (2026-05-05)
 
 
