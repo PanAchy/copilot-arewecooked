@@ -16,6 +16,7 @@ function rec(
     outputTokens: 0,
     cacheReadTokens: 0,
     cacheWriteTokens: 0,
+    calls: 1,
     usd: 0,
     credits,
     pricingKnown: true,
@@ -46,6 +47,7 @@ describe("renderHtml", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
       ],
       { autoModel: "<gpt-5.3-codex>" }
@@ -77,6 +79,7 @@ describe("renderHtml", () => {
           outputTokens: 0,
           cacheReadTokens: 0,
           cacheWriteTokens: 0,
+          calls: 1,
         },
       ],
       { autoModel: "gpt-5.3-codex" }
