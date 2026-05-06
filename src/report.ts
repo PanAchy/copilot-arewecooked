@@ -150,8 +150,8 @@ function comparisonMetric(summary: Summary): {
     .filter((ts): ts is number => ts != null);
   let months = 1;
   if (timestamps.length > 0) {
-    const first = new Date(Math.min(...timestamps));
-    const last = new Date(Math.max(...timestamps));
+    const first = new Date(timestamps.reduce((a, b) => (a < b ? a : b)));
+    const last = new Date(timestamps.reduce((a, b) => (a > b ? a : b)));
     months = Math.max(
       1,
       (last.getFullYear() - first.getFullYear()) * 12 +

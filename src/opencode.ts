@@ -100,7 +100,7 @@ function fetchMsgRows(
       const rows = db
         .prepare(`${MSG_SELECT} WHERE ${chunkWhere}`)
         .all(...chunkArgs) as MsgRow[];
-      results.push(...rows);
+      for (const row of rows) results.push(row);
     } catch (e: unknown) {
       if ((e as NodeJS.ErrnoException)?.code !== "SQLITE_TOOBIG") throw e;
 
@@ -111,7 +111,7 @@ function fetchMsgRows(
           const rows = db
             .prepare(`${MSG_SELECT} WHERE rowid = ? AND ${whereClause}`)
             .all(...singleArgs) as MsgRow[];
-          results.push(...rows);
+          for (const row of rows) results.push(row);
         } catch (e2: unknown) {
           if ((e2 as NodeJS.ErrnoException)?.code !== "SQLITE_TOOBIG") throw e2;
 

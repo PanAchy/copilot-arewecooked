@@ -73,7 +73,7 @@ export function parseXcode(
       currentTurnByPid,
       pinnedModelByTurn
     );
-    records.push(...fileRecords);
+    for (const record of fileRecords) records.push(record);
   }
 
   finding.records = records.length;

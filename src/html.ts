@@ -129,7 +129,9 @@ function renderTrend(points: TrendPoint[]): string {
   const width = 920;
   const height = 320;
   const p = { l: 48, r: 16, t: 16, b: 38 };
-  const max = Math.max(...points.map((d) => d.credits), 1);
+  const max = points.reduce((maxCredits, point) => {
+    return point.credits > maxCredits ? point.credits : maxCredits;
+  }, 1);
   const step =
     points.length > 1 ? (width - p.l - p.r) / (points.length - 1) : 0;
   const y = (v: number) => p.t + (1 - v / max) * (height - p.t - p.b);
@@ -203,8 +205,8 @@ function comparisonMetric(summary: Summary): {
     .filter((ts): ts is number => ts != null);
   let months = 1;
   if (timestamps.length > 0) {
-    const first = new Date(Math.min(...timestamps));
-    const last = new Date(Math.max(...timestamps));
+    const first = new Date(timestamps.reduce((a, b) => (a < b ? a : b)));
+    const last = new Date(timestamps.reduce((a, b) => (a > b ? a : b)));
     months = Math.max(
       1,
       (last.getFullYear() - first.getFullYear()) * 12 +
