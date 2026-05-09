@@ -21,57 +21,29 @@ Pulls usage from VS Code, OpenCode, Pi, Zed, GitHub Copilot CLI, and Copilot for
 
 > TL;DR: GitHub Copilot is moving from premium-request quotas to per-token billing on June 1st. Agentic workflows can now cost more than the old premium-request mental model suggests.
 
-## Just let your agent do it
-
-Don't want to run this yourself? Paste this prompt into your coding agent:
-
-```
-Clone https://github.com/PanAchy/copilot-arewecooked, install dependencies, build it, and run it.
-Then open the generated HTML report and tell me whether or not I'm going to be cooked under the new Copilot AI-credit billing.
-```
-
-## Setup
-
-The quickest way (requires Node.js 20+):
+## Quick start
 
 ```bash
 npx copilot-arewecooked
 ```
 
-Or clone and build:
-
-```bash
-git clone https://github.com/PanAchy/copilot-arewecooked.git
-cd copilot-arewecooked
-npm install
-npm run build
-npm run generate
-```
-
-By default, this writes an HTML report and PNG screenshot like:
+This scans your local Copilot usage data, estimates your AI-credit cost under the new billing, and writes an HTML report + PNG screenshot to your current directory:
 
 ```text
-copilot-report-YYYY-MM-DD-abc123.html
-copilot-report-YYYY-MM-DD-abc123.png
+copilot-report-*.html
+copilot-report-*.png
 ```
 
-### Options
+### Flags
 
-| Flag                   | Description                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `--days <n>`           | Days to look back (default: all available data)                                                 |
-| `--since <date>`       | Only include records from this date onward (YYYY-MM-DD)                                         |
-| `--auto-model <model>` | Treat records reported as `auto` as a specific model for cost estimation (e.g. `gpt-5.3-codex`) |
-| `--json`               | Print detailed normalized JSON to stdout                                                        |
-| `--html [path]`        | Write HTML report to a specific path                                                            |
-
-```bash
-npm run generate -- --days 30
-npm run generate -- --since 2026-04-15
-npm run generate -- --auto-model gpt-5.3-codex
-npm run generate -- --html report.html
-npm run generate -- --json
-```
+| Flag                   | Description                                                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `--days <n>`           | Days to look back (default: all available data)                                                                       |
+| `--since <date>`       | Only include records from this date onward (YYYY-MM-DD)                                                               |
+| `--auto-model <model>` | Treat records reported as `auto` as a specific model for cost estimation (e.g. `gpt-5.3-codex`)                       |
+| `--json`               | Print detailed normalized JSON to stdout (mutually exclusive with `--terminal`)                                       |
+| `--terminal`           | Print a compact report to the terminal instead of generating HTML/PNG (mutually exclusive with `--json` and `--html`) |
+| `--html [path]`        | Write HTML report to a specific path (default: auto-generated filename)                                               |
 
 > **Note on `auto` model:** Some tools (e.g. VS Code Copilot) may report the model as `auto` when the user has not selected a specific model. Credits for those requests will show as zero unless you specify `--auto-model` to map them to a known priced model. The HTML report will include a note when any `auto` records are remapped.
 
@@ -82,6 +54,6 @@ npm run generate -- --json
 | **VS Code**           | `~/Library/Application Support/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (macOS) · `%APPDATA%/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Windows) · `~/.config/Code{, - Insiders}/User/workspaceStorage/*/chatSessions/*.jsonl` (Linux) | Input estimated, output exact, cache not persisted                     |
 | **OpenCode**          | `~/.local/share/opencode/opencode.db` (macOS and Linux) · `%LOCALAPPDATA%/opencode/opencode.db` / `%APPDATA%/opencode/opencode.db` (Windows)                                                                                                                                          | All exact (input, output, cache read/write)                            |
 | **Pi**                | `~/.pi/agent/sessions/**/*.jsonl` (all platforms)                                                                                                                                                                                                                                     | All exact (input, output, cache read/write)                            |
-| **Zed**               | `~/.local/share/zed/threads/threads.db` (falls back to `thread.db` if present)                                                                                                                                                                                                       | All exact (input, output, cache read/write)                            |
+| **Zed**               | `~/.local/share/zed/threads/threads.db` or `Library/Application Support/Zed/threads/threads.db`                                                                                                                                                                                       | All exact (input, output, cache read/write)                            |
 | **Copilot CLI**       | `~/.copilot/session-state/*/events.jsonl` (all platforms)                                                                                                                                                                                                                             | Output exact, input estimated, compaction exact                        |
 | **Copilot for Xcode** | `~/Library/Logs/GitHubCopilot/*.log` (macOS only)                                                                                                                                                                                                                                     | All exact (input, output, cache read); model attribution via heuristic |
