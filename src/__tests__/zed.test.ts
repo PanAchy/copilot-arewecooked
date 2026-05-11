@@ -6,6 +6,8 @@ import Database from "better-sqlite3";
 import zlib from "node:zlib";
 import { parseZed } from "../zed.js";
 
+const hasZstd = typeof zlib.zstdCompressSync === "function";
+
 let tmpDir: string;
 let dbPath: string;
 
@@ -68,8 +70,8 @@ function insertThread(
   };
 
   const json = Buffer.from(JSON.stringify(payload), "utf8");
-  const data =
-    (args.dataType ?? "zstd") === "json" ? json : zlib.zstdCompressSync(json);
+  const useZstd = (args.dataType ?? "zstd") === "zstd";
+  const data = useZstd ? zlib.zstdCompressSync!(json) : json;
 
   db.prepare(
     `INSERT INTO threads (id, updated_at, created_at, data_type, data)
@@ -90,7 +92,7 @@ describe("parseZed", () => {
     expect(records).toHaveLength(0);
   });
 
-  it("reads zstd-compressed cumulative token usage", () => {
+  it.skipIf(!hasZstd)("reads zstd-compressed cumulative token usage", () => {
     const db = createDb();
     insertThread(db, { id: "thread-1" });
     db.close();
@@ -131,7 +133,7 @@ describe("parseZed", () => {
     expect(records[0]!.cacheWriteTokens).toBe(5);
   });
 
-  it("sums cumulative token usage arrays defensively", () => {
+  it.skipIf(!hasZstd)("sums cumulative token usage arrays defensively", () => {
     const db = createDb();
     insertThread(db, {
       id: "thread-array",
@@ -159,38 +161,41 @@ describe("parseZed", () => {
     expect(records[0]!.cacheWriteTokens).toBe(3);
   });
 
-  it("falls back to summing request token usage when cumulative usage is empty", () => {
-    const db = createDb();
-    insertThread(db, {
-      id: "thread-request-usage",
-      cumulativeTokenUsage: {},
-      requestTokenUsage: {
-        req1: {
-          input_tokens: 100,
-          output_tokens: 20,
-          cache_read_input_tokens: 5,
-          cache_creation_input_tokens: 1,
+  it.skipIf(!hasZstd)(
+    "falls back to summing request token usage when cumulative usage is empty",
+    () => {
+      const db = createDb();
+      insertThread(db, {
+        id: "thread-request-usage",
+        cumulativeTokenUsage: {},
+        requestTokenUsage: {
+          req1: {
+            input_tokens: 100,
+            output_tokens: 20,
+            cache_read_input_tokens: 5,
+            cache_creation_input_tokens: 1,
+          },
+          req2: {
+            input_tokens: 50,
+            output_tokens: 8,
+            cache_read_input_tokens: 2,
+            cache_creation_input_tokens: 3,
+          },
         },
-        req2: {
-          input_tokens: 50,
-          output_tokens: 8,
-          cache_read_input_tokens: 2,
-          cache_creation_input_tokens: 3,
-        },
-      },
-    });
-    db.close();
+      });
+      db.close();
 
-    const { records } = parseZed(dbPath);
-    expect(records).toHaveLength(1);
-    expect(records[0]!.inputTokens).toBe(150);
-    expect(records[0]!.outputTokens).toBe(28);
-    expect(records[0]!.cacheReadTokens).toBe(7);
-    expect(records[0]!.cacheWriteTokens).toBe(4);
-    expect(records[0]!.calls).toBe(2);
-  });
+      const { records } = parseZed(dbPath);
+      expect(records).toHaveLength(1);
+      expect(records[0]!.inputTokens).toBe(150);
+      expect(records[0]!.outputTokens).toBe(28);
+      expect(records[0]!.cacheReadTokens).toBe(7);
+      expect(records[0]!.cacheWriteTokens).toBe(4);
+      expect(records[0]!.calls).toBe(2);
+    }
+  );
 
-  it("filters rows older than sinceMs", () => {
+  it.skipIf(!hasZstd)("filters rows older than sinceMs", () => {
     const db = createDb();
     insertThread(db, { id: "old", updatedAt: "2026-05-01T00:00:00.000Z" });
     insertThread(db, { id: "new", updatedAt: "2026-05-10T00:00:00.000Z" });
@@ -204,7 +209,7 @@ describe("parseZed", () => {
     expect(records[0]!.sessionId).toBe("new");
   });
 
-  it("skips non-copilot providers", () => {
+  it.skipIf(!hasZstd)("skips non-copilot providers", () => {
     const db = createDb();
     insertThread(db, {
       id: "thread-other",
@@ -220,25 +225,28 @@ describe("parseZed", () => {
     );
   });
 
-  it("reports decode failures without aborting the parse", () => {
-    const db = createDb();
-    insertThread(db, { id: "good-thread" });
-    db.prepare(
-      `INSERT INTO threads (id, updated_at, created_at, data_type, data)
+  it.skipIf(!hasZstd)(
+    "reports decode failures without aborting the parse",
+    () => {
+      const db = createDb();
+      insertThread(db, { id: "good-thread" });
+      db.prepare(
+        `INSERT INTO threads (id, updated_at, created_at, data_type, data)
        VALUES (?, ?, ?, ?, ?)`
-    ).run(
-      "bad-thread",
-      "2026-05-02T00:00:00.000Z",
-      "2026-05-02T00:00:00.000Z",
-      "zstd",
-      Buffer.from("not-zstd")
-    );
-    db.close();
+      ).run(
+        "bad-thread",
+        "2026-05-02T00:00:00.000Z",
+        "2026-05-02T00:00:00.000Z",
+        "zstd",
+        Buffer.from("not-zstd")
+      );
+      db.close();
 
-    const { finding, records } = parseZed(dbPath);
-    expect(records).toHaveLength(1);
-    expect(finding.notes.some((note) => note.includes("bad-thread"))).toBe(
-      true
-    );
-  });
+      const { finding, records } = parseZed(dbPath);
+      expect(records).toHaveLength(1);
+      expect(finding.notes.some((note) => note.includes("bad-thread"))).toBe(
+        true
+      );
+    }
+  );
 });

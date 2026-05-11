@@ -43,7 +43,9 @@
   "dependencies": {
     "better-sqlite3": "^12.5.0",
     "commander": "^14.0.2",
-    "fast-glob": "^3.3.3",
+    "fast-glob": "^3.3.3"
+  },
+  "optionalDependencies": {
     "puppeteer": "^24.42.0"
   },
   "devDependencies": {

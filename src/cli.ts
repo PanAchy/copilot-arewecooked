@@ -5,9 +5,9 @@ import { existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import puppeteer from "puppeteer";
 import { buildSummary, costRecords, renderConsole } from "./report.js";
 import { sourceAdapters } from "./sources.js";
+import type { SourceParseResult } from "./source.js";
 import { renderHtml } from "./html.js";
 
 const DEBUG = !!process.env.DEBUG;
@@ -104,7 +104,17 @@ for (const adapter of Object.values(sourceAdapters)) {
   const toCheck = existing.length > 0 ? existing : [paths[0]];
   for (const path of toCheck) {
     const tAdapter = Date.now();
-    const result = adapter.parse(path, sinceMs);
+    let result: SourceParseResult;
+    try {
+      result = adapter.parse(path, sinceMs);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `Warning: ${adapter.kind} source failed (${msg}). Skipping.`
+      );
+      if (DEBUG && err instanceof Error) console.error(err.stack);
+      continue;
+    }
     dbg(
       `parse ${result.finding.source} (${result.records.length} records)`,
       tAdapter
@@ -150,14 +160,32 @@ if (options.json) {
 
   const pngPath = htmlPath.replace(/\.html$/, "") + ".png";
   const tPng = Date.now();
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
-  await page.goto(pathToFileURL(resolve(htmlPath)).href, {
-    waitUntil: "networkidle0",
-  });
-  await page.screenshot({ path: pngPath, fullPage: true });
-  await browser.close();
-  dbg("png screenshot", tPng);
-  console.log(`PNG screenshot written to ${pngPath}`);
+  try {
+    const puppeteer = await import("puppeteer");
+    const browser = await puppeteer.default.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.setViewport({
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 2,
+    });
+    await page.goto(pathToFileURL(resolve(htmlPath)).href, {
+      waitUntil: "networkidle0",
+    });
+    await page.screenshot({ path: pngPath, fullPage: true });
+    await browser.close();
+    dbg("png screenshot", tPng);
+    console.log(`PNG screenshot written to ${pngPath}`);
+  } catch (err) {
+    const reason =
+      err instanceof Error && err.message.includes("Cannot find")
+        ? "puppeteer is not installed"
+        : err instanceof Error
+          ? err.message.split("\n")[0]
+          : String(err);
+    console.error(
+      `Skipping PNG screenshot (${reason}). Open the HTML report in a browser instead.`
+    );
+    if (DEBUG && err instanceof Error) console.error(err.stack);
+  }
 }
