@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.2](https://github.com/PanAchy/copilot-arewecooked/compare/v0.9.1...v0.9.2) (2026-05-11)
+
+
+### Bug Fixes
+
+* **cli:** make puppeteer optional and gracefully skip PNG on failure ([a199f25](https://github.com/PanAchy/copilot-arewecooked/commit/a199f25eb9ae90cc0e207f1123970223527980a5))
+* **cli:** make puppeteer optional and gracefully skip PNG on failure ([564303f](https://github.com/PanAchy/copilot-arewecooked/commit/564303f1bc71dbfcc431b932ebbaacdaa3a1855b))
+* skip zstd tests on Node 20 and guard source adapters from crashes ([e532965](https://github.com/PanAchy/copilot-arewecooked/commit/e532965af4b02ee684fe1a67696f00634fe2faa3))
+* skip zstd tests on Node 20 and guard source adapters from crashes ([eddb281](https://github.com/PanAchy/copilot-arewecooked/commit/eddb281f82e6c10239c28b3bc41f100fd2fc10c3))
+
 ## [0.9.1](https://github.com/PanAchy/copilot-arewecooked/compare/v0.9.0...v0.9.1) (2026-05-06)
 
 
