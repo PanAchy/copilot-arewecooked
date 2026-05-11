@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildSummary, costRecords, renderConsole } from "./report.js";
 import { sourceAdapters } from "./sources.js";
+import type { SourceParseResult } from "./source.js";
 import { renderHtml } from "./html.js";
 
 const DEBUG = !!process.env.DEBUG;
@@ -103,7 +104,17 @@ for (const adapter of Object.values(sourceAdapters)) {
   const toCheck = existing.length > 0 ? existing : [paths[0]];
   for (const path of toCheck) {
     const tAdapter = Date.now();
-    const result = adapter.parse(path, sinceMs);
+    let result: SourceParseResult;
+    try {
+      result = adapter.parse(path, sinceMs);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `Warning: ${adapter.kind} source failed (${msg}). Skipping.`
+      );
+      if (DEBUG && err instanceof Error) console.error(err.stack);
+      continue;
+    }
     dbg(
       `parse ${result.finding.source} (${result.records.length} records)`,
       tAdapter
