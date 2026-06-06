@@ -8,6 +8,7 @@ export function roughTokens(value: unknown): number {
 export const DISPLAY_NAMES: Record<string, string> = {
   vscode: "VS Code",
   "vscode-insiders": "VS Code Insiders",
+  "vscode-otel": "VS Code (OTel)",
   opencode: "OpenCode",
   pi: "Pi",
   zed: "Zed",

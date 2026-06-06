@@ -53,6 +53,33 @@ export function vscodeStoragePaths(): string[] {
   ]);
 }
 
+export function vscodeOtelDbPaths(): string[] {
+  return compact([
+    join(
+      home,
+      ".config/Code/User/globalStorage/github.copilot-chat/agent-traces.db"
+    ),
+    isMac
+      ? join(
+          home,
+          "Library/Application Support/Code/User/globalStorage/github.copilot-chat/agent-traces.db"
+        )
+      : undefined,
+    isWindows && process.env.APPDATA
+      ? join(
+          process.env.APPDATA,
+          "Code/User/globalStorage/github.copilot-chat/agent-traces.db"
+        )
+      : undefined,
+    isWindows && process.env.LOCALAPPDATA
+      ? join(
+          process.env.LOCALAPPDATA,
+          "Code/User/globalStorage/github.copilot-chat/agent-traces.db"
+        )
+      : undefined,
+  ]);
+}
+
 export function xcodeLogPaths(): string[] {
   return compact([
     isMac ? join(home, "Library/Logs/GitHubCopilot") : undefined,
