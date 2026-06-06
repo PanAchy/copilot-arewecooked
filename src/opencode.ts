@@ -4,8 +4,30 @@ import { opencodeDbPaths } from "./paths.js";
 import type { SourceFinding, ToolFinding, UsageRecord } from "./types.js";
 import type { SourceParseResult } from "./source.js";
 
+type SessionRow = {
+  id: string;
+  model: string | null;
+  tokens_input: number;
+  tokens_output: number;
+  tokens_reasoning: number;
+  tokens_cache_read: number;
+  tokens_cache_write: number;
+  cost: number;
+  time_created: number;
+  agent: string | null;
+  time_compacting: number | null;
+};
+
 export function defaultOpenCodeDbPaths(): string[] {
   return opencodeDbPaths();
+}
+
+function safeJsonParse(input: string): Record<string, unknown> | undefined {
+  try {
+    return JSON.parse(input) as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
 }
 
 function isCopilotProvider(provider?: string, model?: string): boolean {
@@ -195,8 +217,73 @@ export function parseOpenCode(
       });
     }
 
+    // ── Session-level fallback (OpenCode 1.16.0+) ──────────────────────────
+    // OpenCode 1.16.0 may store token data at the session level rather than
+    // in per-message `data` JSON (GitHub Copilot token-based billing update).
+    // For sessions where per-message tokens sum to zero but the session table
+    // has non-zero token counts, replace the zero-token message records with
+    // a single session-level aggregate record.
+    const sessionTokenTotals = new Map<string, number>();
+    for (const r of records) {
+      const sid = r.sessionId;
+      if (!sid) continue;
+      const prev = sessionTokenTotals.get(sid) ?? 0;
+      sessionTokenTotals.set(sid, prev + r.inputTokens + r.outputTokens);
+    }
+
+    const sessionStmt = db.prepare(`
+      SELECT id, model, tokens_input, tokens_output, tokens_cache_read,
+             tokens_cache_write, cost, time_created, agent, time_compacting
+      FROM session
+      WHERE (tokens_input > 0 OR tokens_output > 0)
+      ${sinceMs ? "AND time_created >= ?" : ""}
+    `);
+    const sessionRows = (
+      sinceMs !== undefined ? sessionStmt.all(sinceMs) : sessionStmt.all()
+    ) as SessionRow[];
+
+    for (const row of sessionRows) {
+      const modelData: { providerID?: string; id?: string } | undefined =
+        typeof row.model === "string" && row.model.length > 0
+          ? safeJsonParse(row.model)
+          : undefined;
+      const provider = modelData?.providerID;
+      const modelId = modelData?.id;
+      if (!isCopilotProvider(provider, modelId)) continue;
+
+      const hasMsgTokens = (sessionTokenTotals.get(row.id) ?? 0) > 0;
+      if (hasMsgTokens) continue;
+
+      // Remove any zero-token message-level records for this session
+      const before = records.length;
+      for (let i = records.length - 1; i >= 0; i--) {
+        if (records[i]!.sessionId === row.id) {
+          records.splice(i, 1);
+        }
+      }
+
+      records.push({
+        source: "opencode",
+        sourcePath: path,
+        sessionId: row.id,
+        messageId: undefined,
+        parentId: undefined,
+        timestamp: row.time_created ?? undefined,
+        provider: String(provider ?? modelId ?? ""),
+        model: String(modelId ?? "").replace(/^github-copilot\//, ""),
+        inputTokens: row.tokens_input ?? 0,
+        outputTokens: row.tokens_output ?? 0,
+        cacheReadTokens: row.tokens_cache_read ?? 0,
+        cacheWriteTokens: row.tokens_cache_write ?? 0,
+        calls: 1,
+        mode: undefined,
+        agent: row.agent ?? undefined,
+        isCompaction: row.time_compacting !== null,
+      });
+    }
+
     const copilotSessions = new Set(
-      records.map((record) => record.sessionId).filter(Boolean)
+      records.map((r) => r.sessionId).filter(Boolean)
     );
     if (copilotSessions.size > 0) {
       type PartRow = {
