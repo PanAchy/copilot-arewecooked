@@ -3,6 +3,7 @@ import { defaultOpenCodeDbPaths, parseOpenCode } from "./opencode.js";
 import { defaultPiSessionsPaths, parsePi } from "./pi.js";
 import type { SourceAdapter } from "./source.js";
 import { defaultZedDbPaths, parseZed } from "./zed.js";
+import { defaultVsCodeOtelDbPaths, parseVsCodeOtel } from "./vscodeOtel.js";
 import {
   defaultVsCodeWorkspaceStoragePaths,
   defaultVsCodeInsidersWorkspaceStoragePaths,
@@ -21,6 +22,11 @@ export const sourceAdapters = {
     kind: "vscode-insiders",
     defaultPaths: defaultVsCodeInsidersWorkspaceStoragePaths,
     parse: parseVsCodeInsiders,
+  },
+  vscodeOtel: {
+    kind: "vscode-otel",
+    defaultPaths: defaultVsCodeOtelDbPaths,
+    parse: parseVsCodeOtel,
   },
   opencode: {
     kind: "opencode",
