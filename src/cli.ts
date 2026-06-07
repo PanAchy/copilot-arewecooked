@@ -126,6 +126,27 @@ for (const adapter of Object.values(sourceAdapters)) {
 }
 dbg("all sources parsed", t0);
 
+// Dedup: OTel spans have exact token counts; VS Code JSONL has estimated
+// input and zero cache. Remove duplicate sessions from vscode/vscode-insiders
+// when vscode-otel already covers them.
+const otelSessions = new Set(
+  records
+    .filter((r) => r.source === "vscode-otel" && r.sessionId)
+    .map((r) => r.sessionId)
+);
+if (otelSessions.size > 0) {
+  for (let i = records.length - 1; i >= 0; i--) {
+    const r = records[i]!;
+    if (
+      (r.source === "vscode" || r.source === "vscode-insiders") &&
+      r.sessionId &&
+      otelSessions.has(r.sessionId)
+    ) {
+      records.splice(i, 1);
+    }
+  }
+}
+
 const tCost = Date.now();
 const costed = costRecords(records, { autoModel });
 dbg("costRecords", tCost);

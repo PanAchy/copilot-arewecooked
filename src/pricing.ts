@@ -61,9 +61,17 @@ export const MODEL_PRICES: Record<string, PriceRate> = {
     cacheWrite: 6.25,
     output: 25.0,
   },
+  "claude-opus-4.8": {
+    input: 5.0,
+    cachedInput: 0.5,
+    cacheWrite: 6.25,
+    output: 25.0,
+  },
   "gemini-2.5-pro": { input: 1.25, cachedInput: 0.125, output: 10.0 },
   "gemini-3-flash": { input: 0.5, cachedInput: 0.05, output: 3.0 },
   "gemini-3.1-pro": { input: 2.0, cachedInput: 0.2, output: 12.0 },
+  "gemini-3.5-flash": { input: 1.5, cachedInput: 0.15, output: 9.0 },
+  "mai-code-1-flash": { input: 0.75, cachedInput: 0.075, output: 4.5 },
   goldeneye: { input: 1.25, cachedInput: 0.125, output: 10.0 },
 };
 

@@ -221,12 +221,26 @@ describe("large dataset — opencode.ts", () => {
         CREATE TABLE message (
           id TEXT NOT NULL,
           session_id TEXT NOT NULL,
+          time_created INTEGER NOT NULL DEFAULT 0,
           data TEXT NOT NULL
         );
         CREATE TABLE part (
           id TEXT NOT NULL,
           session_id TEXT NOT NULL,
           data TEXT NOT NULL
+        );
+        CREATE TABLE session (
+          id TEXT NOT NULL,
+          model TEXT,
+          tokens_input INTEGER NOT NULL DEFAULT 0,
+          tokens_output INTEGER NOT NULL DEFAULT 0,
+          tokens_reasoning INTEGER NOT NULL DEFAULT 0,
+          tokens_cache_read INTEGER NOT NULL DEFAULT 0,
+          tokens_cache_write INTEGER NOT NULL DEFAULT 0,
+          cost REAL NOT NULL DEFAULT 0,
+          time_created INTEGER NOT NULL DEFAULT 0,
+          agent TEXT,
+          time_compacting INTEGER
         );
       `);
 

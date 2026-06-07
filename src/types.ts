@@ -5,6 +5,7 @@ export type SourceKind =
   | "zed"
   | "vscode"
   | "vscode-insiders"
+  | "vscode-otel"
   | "xcode";
 
 export interface UsageRecord {
