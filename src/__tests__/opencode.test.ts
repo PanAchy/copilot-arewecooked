@@ -28,6 +28,7 @@ function createDb(): Database.Database {
     CREATE TABLE message (
       id TEXT NOT NULL,
       session_id TEXT NOT NULL,
+      time_created INTEGER NOT NULL DEFAULT 0,
       data TEXT NOT NULL
     );
     CREATE TABLE part (
@@ -35,8 +36,59 @@ function createDb(): Database.Database {
       session_id TEXT NOT NULL,
       data TEXT NOT NULL
     );
+    CREATE TABLE session (
+      id TEXT NOT NULL,
+      model TEXT,
+      tokens_input INTEGER NOT NULL DEFAULT 0,
+      tokens_output INTEGER NOT NULL DEFAULT 0,
+      tokens_reasoning INTEGER NOT NULL DEFAULT 0,
+      tokens_cache_read INTEGER NOT NULL DEFAULT 0,
+      tokens_cache_write INTEGER NOT NULL DEFAULT 0,
+      cost REAL NOT NULL DEFAULT 0,
+      time_created INTEGER NOT NULL DEFAULT 0,
+      agent TEXT,
+      time_compacting INTEGER
+    );
   `);
   return db;
+}
+
+function insertSession(
+  db: Database.Database,
+  row: {
+    id: string;
+    modelProviderID?: string;
+    modelID?: string;
+    tokensInput?: number;
+    tokensOutput?: number;
+    tokensCacheRead?: number;
+    tokensCacheWrite?: number;
+    timeCreated?: number;
+    agent?: string;
+    timeCompacting?: number | null;
+  }
+) {
+  const model =
+    row.modelProviderID || row.modelID
+      ? JSON.stringify({
+          providerID: row.modelProviderID ?? "",
+          id: row.modelID ?? "",
+        })
+      : null;
+  db.prepare(
+    `INSERT INTO session (id, model, tokens_input, tokens_output, tokens_cache_read, tokens_cache_write, time_created, agent, time_compacting)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    row.id,
+    model,
+    row.tokensInput ?? 0,
+    row.tokensOutput ?? 0,
+    row.tokensCacheRead ?? 0,
+    row.tokensCacheWrite ?? 0,
+    row.timeCreated ?? 1_000_000,
+    row.agent ?? null,
+    row.timeCompacting ?? null
+  );
 }
 
 function insertMessage(
@@ -469,5 +521,160 @@ describe("parseOpenCode — SQLITE_TOOBIG fallback", () => {
     });
 
     expect(() => parseOpenCode(dbPath)).toThrow("unexpected chunk error");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Session-level fallback (OpenCode 1.16.0+)
+// ---------------------------------------------------------------------------
+
+describe("parseOpenCode — session-level fallback", () => {
+  it("creates records from session table when messages have zero tokens", () => {
+    const db = createDb();
+    insertMessage(db, {
+      id: "msg-1",
+      sessionId: "ses-1",
+      providerID: "github-copilot",
+      modelID: "gpt-5-mini",
+      inputTokens: 0,
+      outputTokens: 0,
+    });
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 1000,
+      tokensOutput: 500,
+      tokensCacheRead: 200,
+      tokensCacheWrite: 50,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records).toHaveLength(1);
+    expect(records[0]!.sessionId).toBe("ses-1");
+    expect(records[0]!.inputTokens).toBe(1000);
+    expect(records[0]!.outputTokens).toBe(500);
+    expect(records[0]!.cacheReadTokens).toBe(200);
+    expect(records[0]!.cacheWriteTokens).toBe(50);
+    expect(records[0]!.model).toBe("gpt-5-mini");
+  });
+
+  it("skips session-level fallback when message records have non-zero tokens", () => {
+    const db = createDb();
+    insertMessage(db, {
+      id: "msg-1",
+      sessionId: "ses-1",
+      providerID: "github-copilot",
+      modelID: "gpt-5-mini",
+      inputTokens: 500,
+      outputTokens: 300,
+    });
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 9999,
+      tokensOutput: 9999,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records).toHaveLength(1);
+    // Should prefer per-message granularity, not session aggregate
+    expect(records[0]!.inputTokens).toBe(500);
+    expect(records[0]!.outputTokens).toBe(300);
+    expect(records[0]!.messageId).toBe("msg-1");
+  });
+
+  it("creates session-level records when no messages exist for a copilot session", () => {
+    const db = createDb();
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 2000,
+      tokensOutput: 1000,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records).toHaveLength(1);
+    expect(records[0]!.sessionId).toBe("ses-1");
+    expect(records[0]!.inputTokens).toBe(2000);
+    expect(records[0]!.outputTokens).toBe(1000);
+    expect(records[0]!.messageId).toBeUndefined();
+    expect(records[0]!.model).toBe("gpt-5-mini");
+  });
+
+  it("skips non-copilot sessions", () => {
+    const db = createDb();
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "openai",
+      modelID: "gpt-5.5",
+      tokensInput: 1000,
+      tokensOutput: 500,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records).toHaveLength(0);
+  });
+
+  it("skips sessions with zero tokens", () => {
+    const db = createDb();
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 0,
+      tokensOutput: 0,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records).toHaveLength(0);
+  });
+
+  it("filters session records by sinceMs", () => {
+    const db = createDb();
+    insertSession(db, {
+      id: "ses-old",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 500,
+      tokensOutput: 300,
+      timeCreated: 1_000_000,
+    });
+    insertSession(db, {
+      id: "ses-new",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 1000,
+      tokensOutput: 500,
+      timeCreated: 3_000_000,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath, 2_000_000);
+    expect(records).toHaveLength(1);
+    expect(records[0]!.sessionId).toBe("ses-new");
+  });
+
+  it("marks session as compaction when time_compacting is set", () => {
+    const db = createDb();
+    insertSession(db, {
+      id: "ses-1",
+      modelProviderID: "github-copilot",
+      modelID: "gpt-5-mini",
+      tokensInput: 500,
+      tokensOutput: 300,
+      timeCompacting: 2_000_000,
+    });
+    db.close();
+
+    const { records } = parseOpenCode(dbPath);
+    expect(records[0]!.isCompaction).toBe(true);
   });
 });
