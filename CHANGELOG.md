@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/PanAchy/copilot-arewecooked/compare/v0.9.2...v0.10.0) (2026-06-07)
+
+
+### Features
+
+* **vscode:** add OTel traces DB parser for exact token counts ([e053962](https://github.com/PanAchy/copilot-arewecooked/commit/e053962bdd339811f16b9bf6d336067c8918309e))
+
+
+### Bug Fixes
+
+* **opencode:** add session-level token fallback for OpenCode 1.16.0+ ([46582cd](https://github.com/PanAchy/copilot-arewecooked/commit/46582cdd4fc0fe9dedbbb13757b9e1d41725b191))
+* **pricing:** add missing GitHub Copilot models (opus-4.8, gemini-3.5-flash, mai-code-1-flash) ([9f8103e](https://github.com/PanAchy/copilot-arewecooked/commit/9f8103e3a74f9d827c6be38feba49f3f2277ded2))
+* **report:** clarify plan comparison with negative remaining and Used % column ([144012c](https://github.com/PanAchy/copilot-arewecooked/commit/144012c1d44dfe217e942785730f1dc006130ef6))
+* **vscode-otel:** dedup vscode/vscode-insiders sessions when OTel data exists ([400c925](https://github.com/PanAchy/copilot-arewecooked/commit/400c925cb0301773b9ffabe28a8c38b613fad047))
+* **vscode-otel:** rename display to VSCode (OTel) ([bc9eb45](https://github.com/PanAchy/copilot-arewecooked/commit/bc9eb45f3a8ea20e4aa0928c59a5d1834cfab3ab))
+
 ## [0.9.2](https://github.com/PanAchy/copilot-arewecooked/compare/v0.9.1...v0.9.2) (2026-05-11)
 
 
