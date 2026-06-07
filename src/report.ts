@@ -253,21 +253,14 @@ export function renderConsole(summary: Summary): string {
       },
       {
         header: "Remaining",
-        value: (row) => {
-          const remaining = row.includedCredits - row.usedCredits;
-          return remaining < 0
-            ? fmtCredits(Math.abs(remaining))
-            : fmtCredits(remaining);
-        },
+        value: (row) => fmtCredits(row.includedCredits - row.usedCredits),
         align: "right",
       },
       {
-        header: "%",
+        header: "Used %",
         value: (row) => {
-          const pct =
-            ((row.includedCredits - row.usedCredits) / row.includedCredits) *
-            100;
-          return `${pct < 0 ? "-" : ""}${fmt(Math.abs(pct), 1)}%`;
+          const pct = (row.usedCredits / row.includedCredits) * 100;
+          return `${fmt(pct, 1)}%`;
         },
         align: "right",
       },
